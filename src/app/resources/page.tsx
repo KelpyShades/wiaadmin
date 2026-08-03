@@ -282,7 +282,7 @@ export default function ResourcesPage() {
 
       {/* DIALOG: ADD CATEGORY */}
       <Dialog open={isCategoryOpen} onOpenChange={setIsCategoryOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
             <DialogTitle>Add Category</DialogTitle>
             <DialogDescription>Create a new grouping for resource materials.</DialogDescription>
@@ -344,7 +344,7 @@ export default function ResourcesPage() {
 
       {/* DIALOG: ADD RESOURCE ITEM */}
       <Dialog open={isResourceOpen} onOpenChange={setIsResourceOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
             <DialogTitle>Add Resource Item</DialogTitle>
             <DialogDescription>Add a new file, book link, podcast, or tool link under this category.</DialogDescription>

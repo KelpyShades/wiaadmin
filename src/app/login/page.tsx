@@ -38,11 +38,13 @@ function LoginForm() {
     try {
       const isSignUp = !!inviteToken || !hasAdmins;
       const flow = isSignUp ? "signUp" : "signIn";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const args: any = { email, password, flow };
       if (inviteToken) args.inviteToken = inviteToken;
       
       await signIn("password", args);
       // The useEffect above will handle the redirect once authenticated
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       

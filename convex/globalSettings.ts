@@ -31,6 +31,9 @@ export const getGlobalSettings = query({
       fullExpInstallment1Month: "August",
       fullExpInstallment2Amount: 500,
       fullExpInstallment2Month: "September",
+      bankAccountName: "Women of Influence",
+      bankAccountNumber: "N/A",
+      bankName: "N/A",
       heroImageId: undefined,
       imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
     };
@@ -78,6 +81,9 @@ export const updateGlobalSettings = mutation({
     fullExpInstallment1Month: v.string(),
     fullExpInstallment2Amount: v.number(),
     fullExpInstallment2Month: v.string(),
+    bankAccountName: v.string(),
+    bankAccountNumber: v.string(),
+    bankName: v.string(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("globalSettings").first();

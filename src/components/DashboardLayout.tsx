@@ -26,6 +26,7 @@ const NAVIGATION = [
   { name: "Resources", href: "/resources", icon: BookOpen },
   { name: "Settings", href: "/settings", icon: Settings },
   { name: "Inbox", href: "/inbox", icon: Handshake },
+  { name: "Executives", href: "/executives", icon: Users },
   { name: "Team", href: "/team", icon: Users },
 ];
 

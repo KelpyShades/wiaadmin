@@ -8,7 +8,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Image as ImageIcon, Sliders, Calendar, DollarSign } from "lucide-react";
+import { Loader2, Image as ImageIcon, Sliders, Calendar, DollarSign, Landmark } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,9 @@ const settingsSchema = z.object({
   fullExpInstallment1Month: z.string().min(1, "Month is required"),
   fullExpInstallment2Amount: z.number().min(0, "Must be positive number"),
   fullExpInstallment2Month: z.string().min(1, "Month is required"),
+  bankAccountName: z.string().min(1, "Required"),
+  bankAccountNumber: z.string().min(1, "Required"),
+  bankName: z.string().min(1, "Required"),
 });
 
 type FormValues = z.infer<typeof settingsSchema>;
@@ -88,6 +91,9 @@ export default function SettingsPage() {
       fullExpInstallment1Month: "",
       fullExpInstallment2Amount: 0,
       fullExpInstallment2Month: "",
+      bankAccountName: "",
+      bankAccountNumber: "",
+      bankName: "",
     },
   });
 
@@ -117,6 +123,9 @@ export default function SettingsPage() {
         fullExpInstallment1Month: settings.fullExpInstallment1Month,
         fullExpInstallment2Amount: settings.fullExpInstallment2Amount,
         fullExpInstallment2Month: settings.fullExpInstallment2Month,
+        bankAccountName: settings.bankAccountName || "",
+        bankAccountNumber: settings.bankAccountNumber || "",
+        bankName: settings.bankName || "",
       });
     }
   }, [settings, form]);
@@ -188,6 +197,9 @@ export default function SettingsPage() {
               <TabsTrigger value="pricing" className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" /> Pricing & Tiers
               </TabsTrigger>
+              <TabsTrigger value="bank" className="flex items-center gap-2">
+                <Landmark className="h-4 w-4" /> Bank Details
+              </TabsTrigger>
             </TabsList>
 
             {/* TAB: HERO SECTION */}
@@ -206,7 +218,7 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Quote Text</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="We are women of excellence..." className="min-h-[100px]" {...field} />
+                            <Textarea placeholder="We are women of excellence..." className="min-h-25" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -236,8 +248,8 @@ export default function SettingsPage() {
                   <CardContent className="space-y-4">
                     <div className="flex flex-col items-center justify-center p-4 border border-dashed rounded-lg border-zinc-200 bg-zinc-50/50">
                       {settings.imageUrl ? (
-                        <div className="aspect-3/4 w-full max-w-[160px] overflow-hidden rounded-lg border border-zinc-200 shadow-sm mb-4">
-                          <Image src={settings.imageUrl} alt="Current Hero" className="h-full w-full object-cover" />
+                        <div className="aspect-3/4 w-full max-w-40 overflow-hidden rounded-lg border border-zinc-200 shadow-sm mb-4">
+                          <img src={settings.imageUrl} alt="Current Hero" className="h-full w-full object-cover" />
                         </div>
                       ) : (
                         <ImageIcon className="h-12 w-12 text-zinc-300 mb-2" />
@@ -607,7 +619,59 @@ export default function SettingsPage() {
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+            </TabsContent>
 
+            {/* TAB: BANK DETAILS */}
+            <TabsContent value="bank" className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Bank Details</CardTitle>
+                    <CardDescription>Configure bank details sent to sponsors.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="bankAccountName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Women of Influence Academy" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="bankAccountNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="1234567890" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="bankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="GT Bank" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>

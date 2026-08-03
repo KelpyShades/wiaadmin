@@ -31,7 +31,7 @@ export default function OverviewPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Overview</h1>
         <p className="mt-1 flex items-center text-zinc-500">
-          A high-level view of your academy's performance.
+          A high-level view of your academy&apos;s performance.
         </p>
       </div>
 

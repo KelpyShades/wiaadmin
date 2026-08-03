@@ -39,7 +39,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Label } from "@/components/ui/label";
@@ -61,7 +60,10 @@ export default function TeamPage() {
   const [currentTime, setCurrentTime] = useState<number>(0);
 
   useEffect(() => {
-    setCurrentTime(Date.now());
+    const timer = setTimeout(() => {
+      setCurrentTime(Date.now());
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const [confirmState, setConfirmState] = useState<{
@@ -145,11 +147,9 @@ export default function TeamPage() {
 
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold">Active Admins</h3>
+        <Button onClick={() => setIsOpen(true)}>Generate Invite</Button>
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-          <DialogTrigger render={<Button />}>
-            Generate Invite
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-106.25">
             <DialogHeader>
               <DialogTitle>Invite New Admin</DialogTitle>
               <DialogDescription>
@@ -213,7 +213,7 @@ export default function TeamPage() {
             <TableRow>
               <TableHead>Email</TableHead>
               <TableHead>Joined</TableHead>
-              <TableHead className="w-[100px]"></TableHead>
+              <TableHead className="w-25"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -263,7 +263,7 @@ export default function TeamPage() {
                 <TableHead>Intended Email</TableHead>
                 <TableHead>Expires At</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
+                <TableHead className="w-25"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

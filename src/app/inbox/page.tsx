@@ -5,7 +5,7 @@ import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
-import { Loader2, Mail, Phone, Globe } from "lucide-react";
+import { Loader2, Mail, Phone, Globe, Trash2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -49,16 +49,34 @@ interface PartnershipRecord {
   status: string;
 }
 
+interface SponsorshipRecord {
+  _id: Id<"sponsorships">;
+  name: string;
+  email: string;
+  organization?: string;
+  amount: number;
+  status: string;
+  _creationTime: number;
+}
+
 export default function InboxPage() {
   const applications = useQuery(api.inbox.getApplications) as ApplicationRecord[] | undefined;
   const partnerships = useQuery(api.inbox.getPartnerships) as PartnershipRecord[] | undefined;
+  const sponsorships = useQuery(api.inbox.getSponsorships) as SponsorshipRecord[] | undefined;
+  
   const updateAppStatus = useMutation(api.inbox.updateApplicationStatus);
   const updatePartStatus = useMutation(api.inbox.updatePartnershipStatus);
+  const updateSponsorshipStatus = useMutation(api.inbox.updateSponsorshipStatus);
+  
+  const deleteApp = useMutation(api.inbox.deleteApplication);
+  const deletePart = useMutation(api.inbox.deletePartnership);
+  const deleteSponsorship = useMutation(api.inbox.deleteSponsorship);
 
   const [selectedApp, setSelectedApp] = useState<ApplicationRecord | null>(null);
   const [selectedPart, setSelectedPart] = useState<PartnershipRecord | null>(null);
+  const [selectedSponsorship, setSelectedSponsorship] = useState<SponsorshipRecord | null>(null);
 
-  if (applications === undefined || partnerships === undefined) {
+  if (applications === undefined || partnerships === undefined || sponsorships === undefined) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
@@ -79,6 +97,7 @@ export default function InboxPage() {
         <TabsList className="mb-4">
           <TabsTrigger value="applications">Program Applications ({applications.length})</TabsTrigger>
           <TabsTrigger value="partnerships">Partnerships ({partnerships.length})</TabsTrigger>
+          <TabsTrigger value="sponsorships">Sponsorships ({sponsorships.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="applications">
@@ -109,7 +128,7 @@ export default function InboxPage() {
                     >
                       <TableCell className="font-medium">{app.fullName}</TableCell>
                       <TableCell>{app.email}</TableCell>
-                      <TableCell className="text-xs max-w-[150px] truncate">{app.packageName}</TableCell>
+                      <TableCell className="text-xs max-w-37.5 truncate">{app.packageName}</TableCell>
                       <TableCell>GH₵ {app.amount}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
@@ -171,11 +190,59 @@ export default function InboxPage() {
             </Table>
           </div>
         </TabsContent>
+
+        <TabsContent value="sponsorships">
+          <div className="rounded-md border border-zinc-200 bg-white shadow-sm">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Amount (GH₵)</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sponsorships.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center h-24 text-zinc-500">
+                      No sponsorships found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sponsorships.map((spon) => (
+                    <TableRow 
+                      key={spon._id} 
+                      className="cursor-pointer hover:bg-zinc-50"
+                      onClick={() => setSelectedSponsorship(spon)}
+                    >
+                      <TableCell className="text-sm text-zinc-500">
+                        {new Date(spon._creationTime).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="font-medium">{spon.name}</TableCell>
+                      <TableCell>{spon.email}</TableCell>
+                      <TableCell>{spon.amount}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                          spon.status === 'success' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                          'bg-amber-50 text-amber-700 ring-amber-600/20'
+                        }`}>
+                          {spon.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* Application Details Sheet */}
       <Sheet open={!!selectedApp} onOpenChange={(isOpen) => !isOpen && setSelectedApp(null)}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto h-full pb-8">
+        <SheetContent className="sm:max-w-xl overflow-y-auto h-full p-8 pb-12">
           <SheetHeader>
             <SheetTitle>Application Details</SheetTitle>
             <SheetDescription>Full breakdown of this student&apos;s application.</SheetDescription>
@@ -266,10 +333,10 @@ export default function InboxPage() {
                 </div>
               </div>
 
-              <div className="pt-2 flex gap-2">
+              <div className="pt-6 flex gap-3">
                 <Button 
                   variant="outline" 
-                  className="w-full"
+                  className="w-full flex-1"
                   onClick={() => {
                     updateAppStatus({ id: selectedApp._id, paymentStatus: "success" });
                     setSelectedApp({ ...selectedApp, paymentStatus: "success" });
@@ -277,6 +344,19 @@ export default function InboxPage() {
                   disabled={selectedApp.paymentStatus === "success"}
                 >
                   Mark as Paid
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  className="px-3"
+                  title="Delete Application"
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to delete this application?")) {
+                      deleteApp({ id: selectedApp._id });
+                      setSelectedApp(null);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -286,7 +366,7 @@ export default function InboxPage() {
 
       {/* Partnership Details Sheet */}
       <Sheet open={!!selectedPart} onOpenChange={(isOpen) => !isOpen && setSelectedPart(null)}>
-        <SheetContent className="sm:max-w-md">
+        <SheetContent className="sm:max-w-xl overflow-y-auto h-full p-8 pb-12">
           <SheetHeader>
             <SheetTitle>Partnership Request</SheetTitle>
             <SheetDescription>Review details from this potential partner.</SheetDescription>
@@ -314,9 +394,9 @@ export default function InboxPage() {
                 </div>
               </div>
 
-              <div className="pt-4 flex gap-2">
+              <div className="pt-6 flex gap-3">
                 <Button 
-                  className="w-full"
+                  className="w-full flex-1"
                   onClick={() => {
                     updatePartStatus({ id: selectedPart._id, status: "reviewed" });
                     setSelectedPart({ ...selectedPart, status: "reviewed" });
@@ -324,6 +404,87 @@ export default function InboxPage() {
                   disabled={selectedPart.status === "reviewed"}
                 >
                   Mark as Reviewed
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  className="px-3"
+                  title="Delete Partnership"
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to delete this partnership?")) {
+                      deletePart({ id: selectedPart._id });
+                      setSelectedPart(null);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Sponsorship Details Sheet */}
+      <Sheet open={!!selectedSponsorship} onOpenChange={(isOpen) => !isOpen && setSelectedSponsorship(null)}>
+        <SheetContent className="sm:max-w-xl overflow-y-auto h-full p-8 pb-12">
+          <SheetHeader>
+            <SheetTitle>Sponsorship Details</SheetTitle>
+            <SheetDescription>Review this sponsorship contribution.</SheetDescription>
+          </SheetHeader>
+          {selectedSponsorship && (
+            <div className="mt-6 space-y-6">
+              <div>
+                <h3 className="text-sm font-medium text-zinc-500">Sponsor Name</h3>
+                <p className="mt-1 text-base text-zinc-900">{selectedSponsorship.name}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-zinc-500">Organization</h3>
+                <p className="mt-1 text-base text-zinc-900">{selectedSponsorship.organization || "N/A"}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-zinc-500">Email Address</h3>
+                <a href={`mailto:${selectedSponsorship.email}`} className="mt-1 text-base text-blue-600 hover:underline flex items-center gap-1.5">
+                  <Mail className="h-4 w-4" /> {selectedSponsorship.email}
+                </a>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-zinc-500">Amount Pledged</h3>
+                <p className="mt-1 text-xl font-medium text-zinc-900">GH₵ {selectedSponsorship.amount}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-zinc-500">Current Status</h3>
+                <span className={`mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
+                  selectedSponsorship.status === 'success' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                  'bg-amber-50 text-amber-700 ring-amber-600/20'
+                }`}>
+                  {selectedSponsorship.status}
+                </span>
+              </div>
+
+              <div className="pt-6 flex gap-3">
+                <Button 
+                  className="w-full flex-1"
+                  variant="outline"
+                  onClick={() => {
+                    updateSponsorshipStatus({ id: selectedSponsorship._id, status: "success" });
+                    setSelectedSponsorship({ ...selectedSponsorship, status: "success" });
+                  }}
+                  disabled={selectedSponsorship.status === "success"}
+                >
+                  Accept Payment
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  className="px-3"
+                  title="Delete Sponsorship"
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to delete this sponsorship?")) {
+                      deleteSponsorship({ id: selectedSponsorship._id });
+                      setSelectedSponsorship(null);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </div>

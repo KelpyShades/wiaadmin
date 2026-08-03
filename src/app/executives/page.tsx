@@ -7,8 +7,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, Edit2, Trash2, MoreHorizontal, Image as ImageIcon, ExternalLink } from "lucide-react";
-
+import { Loader2, Plus, Edit2, Trash2, MoreHorizontal, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,62 +43,62 @@ import {
 } from "@/components/ui/form";
 import Image from "next/image";
 
-const businessSchema = z.object({
-  name: z.string().min(2, "Business name is required"),
-  founder: z.string().min(2, "Founder name is required"),
-  description: z.string().min(5, "Description must be at least 5 characters"),
-  website: z.string().url("Must be a valid URL (e.g. https://google.com)").or(z.literal("#")),
+const executiveSchema = z.object({
+  name: z.string().min(2, "Name is required"),
+  role: z.string().min(2, "Role is required"),
+  bio: z.string().optional(),
+  order: z.number().int(),
 });
 
-type FormValues = z.infer<typeof businessSchema>;
+type FormValues = z.infer<typeof executiveSchema>;
 
-export default function BusinessesPage() {
-  const businesses = useQuery(api.businesses.getBusinesses);
-  const addBusiness = useMutation(api.businesses.addBusiness);
-  const updateBusiness = useMutation(api.businesses.updateBusiness);
-  const deleteBusiness = useMutation(api.businesses.deleteBusiness);
+export default function ExecutivesPage() {
+  const executives = useQuery(api.executives.getExecutives);
+  const addExecutive = useMutation(api.executives.addExecutive);
+  const updateExecutive = useMutation(api.executives.updateExecutive);
+  const removeExecutive = useMutation(api.executives.removeExecutive);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [editingId, setEditingId] = useState<Id<"businesses"> | null>(null);
+  const [editingId, setEditingId] = useState<Id<"executives"> | null>(null);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
-    businessId: Id<"businesses"> | null;
+    executiveId: Id<"executives"> | null;
   }>({
     isOpen: false,
-    businessId: null,
+    executiveId: null,
   });
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(businessSchema),
+    resolver: zodResolver(executiveSchema),
     defaultValues: {
       name: "",
-      founder: "",
-      description: "",
-      website: "#",
+      role: "",
+      bio: "",
+      order: 0,
     },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleOpen = (business?: any) => {
-    if (business) {
-      setEditingId(business._id);
+  const handleOpen = (executive?: any) => {
+    if (executive) {
+      setEditingId(executive._id);
       form.reset({
-        name: business.name,
-        founder: business.founder,
-        description: business.description,
-        website: business.website || "#",
+        name: executive.name,
+        role: executive.role,
+        bio: executive.bio || "",
+        order: executive.order,
       });
     } else {
       setEditingId(null);
       form.reset({
         name: "",
-        founder: "",
-        description: "",
-        website: "#",
+        role: "",
+        bio: "",
+        order: (executives?.length || 0) + 1,
       });
     }
     setSelectedImage(null);
@@ -124,19 +123,20 @@ export default function BusinessesPage() {
       
       if (selectedImage) {
         imageId = await handleUpload(selectedImage);
-      } else if (editingId && businesses) {
-        const current = businesses.find(b => b._id === editingId);
+      } else if (editingId && executives) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const current = executives.find((b: any) => b._id === editingId);
         if (current?.imageId) imageId = current.imageId;
       }
 
       if (editingId) {
-        await updateBusiness({
+        await updateExecutive({
           id: editingId,
           ...values,
           imageId,
         });
       } else {
-        await addBusiness({
+        await addExecutive({
           ...values,
           imageId,
         });
@@ -147,24 +147,24 @@ export default function BusinessesPage() {
       setEditingId(null);
     } catch (err) {
       console.error(err);
-      alert("Failed to save business");
+      alert("Failed to save executive");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirmState.businessId) return;
+    if (!confirmState.executiveId) return;
     try {
-      await deleteBusiness({ id: confirmState.businessId });
-      setConfirmState({ isOpen: false, businessId: null });
+      await removeExecutive({ id: confirmState.executiveId });
+      setConfirmState({ isOpen: false, executiveId: null });
     } catch (err) {
       console.error(err);
-      alert("Failed to delete business");
+      alert("Failed to delete executive");
     }
   };
 
-  if (businesses === undefined) {
+  if (executives === undefined) {
     return (
       <div className="flex h-64 items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
@@ -176,13 +176,13 @@ export default function BusinessesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Alumni Businesses</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Our Executives</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Manage the listing of businesses built by WIA alumni displayed on the main landing page and subpages.
+            Manage the executives displayed on the team page.
           </p>
         </div>
         <Button onClick={() => handleOpen()} className="flex items-center gap-2 w-fit">
-          <Plus className="h-4 w-4" /> Add Business
+          <Plus className="h-4 w-4" /> Add Executive
         </Button>
       </div>
 
@@ -190,30 +190,31 @@ export default function BusinessesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-20">Preview</TableHead>
-              <TableHead>Business Name</TableHead>
-              <TableHead>Founder</TableHead>
-              <TableHead className="hidden md:table-cell">Description</TableHead>
-              <TableHead>Website</TableHead>
+              <TableHead className="w-20">Image</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead className="hidden md:table-cell">Bio</TableHead>
+              <TableHead>Order</TableHead>
               <TableHead className="w-20"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {businesses.length === 0 ? (
+            {executives.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-zinc-500">
-                  No businesses found. Add one to get started!
+                  No executives found. Add one to get started!
                 </TableCell>
               </TableRow>
             ) : (
-              businesses.map((business) => (
-                <TableRow key={business._id}>
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              executives.map((executive: any) => (
+                <TableRow key={executive._id}>
                   <TableCell>
-                    {business.imageUrl ? (
+                    {executive.imageUrl ? (
                       <div className="relative h-12 w-10 overflow-hidden rounded border border-zinc-200">
                         <Image
-                          src={business.imageUrl}
-                          alt={business.name}
+                          src={executive.imageUrl}
+                          alt={executive.name}
                           fill
                           className="object-cover"
                         />
@@ -224,25 +225,12 @@ export default function BusinessesPage() {
                       </div>
                     )}
                   </TableCell>
-                  <TableCell className="font-semibold text-zinc-900">{business.name}</TableCell>
-                  <TableCell className="text-zinc-600">{business.founder}</TableCell>
+                  <TableCell className="font-semibold text-zinc-900">{executive.name}</TableCell>
+                  <TableCell className="text-zinc-600">{executive.role}</TableCell>
                   <TableCell className="max-w-xs truncate hidden md:table-cell text-zinc-500">
-                    {business.description}
+                    {executive.bio}
                   </TableCell>
-                  <TableCell>
-                    {business.website && business.website !== "#" ? (
-                      <a
-                        href={business.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-plum font-semibold hover:underline"
-                      >
-                        Visit <ExternalLink className="h-3 w-3" />
-                      </a>
-                    ) : (
-                      <span className="text-xs text-zinc-400 italic">None</span>
-                    )}
-                  </TableCell>
+                  <TableCell className="text-zinc-600">{executive.order}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger render={
@@ -251,11 +239,11 @@ export default function BusinessesPage() {
                         <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleOpen(business)} className="flex items-center gap-2">
+                        <DropdownMenuItem onClick={() => handleOpen(executive)} className="flex items-center gap-2">
                           <Edit2 className="h-3.5 w-3.5" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => setConfirmState({ isOpen: true, businessId: business._id })}
+                          onClick={() => setConfirmState({ isOpen: true, executiveId: executive._id })}
                           className="flex items-center gap-2 text-red-600 focus:text-red-600"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> Delete
@@ -273,9 +261,9 @@ export default function BusinessesPage() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-106.25">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Business" : "Add Business"}</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Executive" : "Add Executive"}</DialogTitle>
             <DialogDescription>
-              Provide the details of the alumni business below.
+              Provide the details of the executive below.
             </DialogDescription>
           </DialogHeader>
 
@@ -286,9 +274,9 @@ export default function BusinessesPage() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Business Name</FormLabel>
+                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. AfriTech Solutions" {...field} />
+                      <Input placeholder="e.g. Jane Doe" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -297,12 +285,12 @@ export default function BusinessesPage() {
 
               <FormField
                 control={form.control}
-                name="founder"
+                name="role"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Founder Name</FormLabel>
+                    <FormLabel>Role</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Amara Osei" {...field} />
+                      <Input placeholder="e.g. Director" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -311,12 +299,12 @@ export default function BusinessesPage() {
 
               <FormField
                 control={form.control}
-                name="description"
+                name="bio"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Bio</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Describe the business impact, size, and services..." {...field} />
+                      <Textarea placeholder="Brief biography..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -325,12 +313,17 @@ export default function BusinessesPage() {
 
               <FormField
                 control={form.control}
-                name="website"
+                name="order"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website Link</FormLabel>
+                    <FormLabel>Display Order</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. https://afritech.com (or #)" {...field} />
+                      <Input 
+                        type="number" 
+                        placeholder="1" 
+                        {...field} 
+                        onChange={e => field.onChange(parseInt(e.target.value, 10))} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -338,7 +331,7 @@ export default function BusinessesPage() {
               />
 
               <div className="space-y-2">
-                <FormLabel>Business Image / Logo</FormLabel>
+                <FormLabel>Profile Image</FormLabel>
                 <div className="flex flex-col items-center justify-center p-4 border border-dashed rounded-lg border-zinc-200 bg-zinc-50/50">
                   <Input 
                     type="file" 
@@ -358,7 +351,7 @@ export default function BusinessesPage() {
                 </Button>
                 <Button type="submit" disabled={isSaving}>
                   {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Business
+                  Save Executive
                 </Button>
               </div>
             </form>
@@ -369,8 +362,8 @@ export default function BusinessesPage() {
       <ConfirmDialog
         open={confirmState.isOpen}
         onOpenChange={(open) => setConfirmState(prev => ({ ...prev, isOpen: open }))}
-        title="Delete Business"
-        description="Are you sure you want to delete this alumni business? This action cannot be undone."
+        title="Delete Executive"
+        description="Are you sure you want to delete this executive? This action cannot be undone."
         onConfirm={handleDelete}
       />
     </div>

@@ -4,6 +4,18 @@ import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
   ...authTables,
+  users: defineTable({
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    inviteToken: v.optional(v.union(v.string(), v.null())),
+  })
+    .index("email", ["email"])
+    .index("phone", ["phone"]),
 
   // Admin Roles (Mapping a Convex Auth userId to an Admin role)
   userRoles: defineTable({
@@ -55,6 +67,11 @@ export default defineSchema({
     fullExpInstallment1Month: v.string(),
     fullExpInstallment2Amount: v.number(),
     fullExpInstallment2Month: v.string(),
+
+    // Bank Details for Sponsorships
+    bankAccountName: v.optional(v.string()),
+    bankAccountNumber: v.optional(v.string()),
+    bankName: v.optional(v.string()),
   }),
 
   // Testimonials & Success Stories
@@ -113,11 +130,34 @@ export default defineSchema({
     paymentStatus: v.union(v.literal("pending"), v.literal("success"), v.literal("failed")),
   }),
   
+  sponsorships: defineTable({
+    name: v.string(),
+    email: v.string(),
+    organization: v.optional(v.string()),
+    amount: v.number(),
+    status: v.union(v.literal("pending"), v.literal("success"), v.literal("failed")),
+  }),
+  
   partnerships: defineTable({
     name: v.string(),
     organization: v.optional(v.string()),
     email: v.string(),
     message: v.string(),
     status: v.string(),
+  }),
+
+  // Executives
+  executives: defineTable({
+    name: v.string(),
+    role: v.string(),
+    bio: v.optional(v.string()),
+    imageId: v.optional(v.id("_storage")), // Uploaded via Convex Storage
+    order: v.number(),
+  }),
+
+  // Newsletter Subscribers
+  newsletterSubscribers: defineTable({
+    email: v.string(),
+    subscribedAt: v.number(),
   })
 });

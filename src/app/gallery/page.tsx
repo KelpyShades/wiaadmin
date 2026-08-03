@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 const gallerySchema = z.object({
   caption: z.string().min(2, "Caption is required"),
@@ -72,6 +72,7 @@ export default function GalleryPage() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchType = form.watch("type");
 
   const openAddSheet = () => {
@@ -162,7 +163,10 @@ export default function GalleryPage() {
                     <Video className="h-10 w-10 text-zinc-400" />
                   </div>
                 ) : (
-                  <img src={item.url!} alt={item.caption} className="h-full w-full object-cover" />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.url!} alt={item.caption} className="h-full w-full object-cover" />
+                  </>
                 )}
                 
                 <div className="absolute top-2 left-2 rounded-md bg-black/60 px-2 py-1 backdrop-blur-sm">

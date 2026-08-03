@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useMutation } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
@@ -8,7 +8,14 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, Edit2, Trash2, MoreHorizontal, Image as ImageIcon, Video } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Trash2,
+  MoreHorizontal,
+  Image as ImageIcon,
+  Video,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,10 +97,17 @@ export default function TestimonialsPage() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchType = form.watch("type");
 
   const openAddSheet = () => {
-    form.reset({ name: "", role: "", type: "written", quote: "", achievement: "" });
+    form.reset({
+      name: "",
+      role: "",
+      type: "written",
+      quote: "",
+      achievement: "",
+    });
     setSelectedImage(null);
     setSelectedVideo(null);
     setIsSheetOpen(true);
@@ -158,7 +172,9 @@ export default function TestimonialsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Testimonials</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+            Testimonials
+          </h1>
           <p className="mt-1 text-sm text-zinc-500">
             Manage student success stories, reviews, and video testimonials.
           </p>
@@ -176,13 +192,16 @@ export default function TestimonialsPage() {
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
+              <TableHead className="w-17.5"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {testimonials.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center h-24 text-zinc-500">
+                <TableCell
+                  colSpan={5}
+                  className="text-center h-24 text-zinc-500"
+                >
                   No testimonials found.
                 </TableCell>
               </TableRow>
@@ -192,7 +211,12 @@ export default function TestimonialsPage() {
                   <TableCell>
                     {test.imageUrl ? (
                       <div className="h-10 w-10 overflow-hidden rounded-full border border-zinc-200">
-                        <img src={test.imageUrl} alt={test.name} className="h-full w-full object-cover" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={test.imageUrl}
+                          alt={test.name}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                     ) : test.videoUrl ? (
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200">
@@ -213,7 +237,11 @@ export default function TestimonialsPage() {
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger render={<Button variant="ghost" className="h-8 w-8 p-0" />}>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button variant="ghost" className="h-8 w-8 p-0" />
+                        }
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -244,14 +272,20 @@ export default function TestimonialsPage() {
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6 mt-6"
+            >
               <FormField
                 control={form.control}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Testimonial Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -260,7 +294,9 @@ export default function TestimonialsPage() {
                       <SelectContent>
                         <SelectItem value="written">Written Quote</SelectItem>
                         <SelectItem value="video">Video Review</SelectItem>
-                        <SelectItem value="success_story">Success Story (Alumni)</SelectItem>
+                        <SelectItem value="success_story">
+                          Success Story (Alumni)
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -305,10 +341,10 @@ export default function TestimonialsPage() {
                     <FormItem>
                       <FormLabel>Quote</FormLabel>
                       <FormControl>
-                        <textarea 
-                          className="flex min-h-[100px] w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm"
-                          placeholder="What did they say?" 
-                          {...field} 
+                        <textarea
+                          className="flex min-h-25 w-full rounded-md border border-zinc-200 bg-transparent px-3 py-2 text-sm shadow-sm"
+                          placeholder="What did they say?"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -325,7 +361,10 @@ export default function TestimonialsPage() {
                     <FormItem>
                       <FormLabel>Key Achievement</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Raised $50k funding" {...field} />
+                        <Input
+                          placeholder="e.g. Raised $50k funding"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -337,10 +376,12 @@ export default function TestimonialsPage() {
                 {(watchType === "written" || watchType === "success_story") && (
                   <div className="space-y-2">
                     <FormLabel>Profile Image</FormLabel>
-                    <Input 
-                      type="file" 
+                    <Input
+                      type="file"
                       accept="image/*"
-                      onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+                      onChange={(e) =>
+                        setSelectedImage(e.target.files?.[0] || null)
+                      }
                     />
                   </div>
                 )}
@@ -348,10 +389,12 @@ export default function TestimonialsPage() {
                 {watchType === "video" && (
                   <div className="space-y-2">
                     <FormLabel>Video File</FormLabel>
-                    <Input 
-                      type="file" 
+                    <Input
+                      type="file"
                       accept="video/*"
-                      onChange={(e) => setSelectedVideo(e.target.files?.[0] || null)}
+                      onChange={(e) =>
+                        setSelectedVideo(e.target.files?.[0] || null)
+                      }
                     />
                   </div>
                 )}
@@ -360,18 +403,25 @@ export default function TestimonialsPage() {
               <div className="pt-4 flex justify-end">
                 <Button type="submit" disabled={isUploading}>
                   {isUploading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</>
-                  ) : "Add Testimonial"}
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      Uploading...
+                    </>
+                  ) : (
+                    "Add Testimonial"
+                  )}
                 </Button>
               </div>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
-      
-      <ConfirmDialog 
-        open={confirmState.isOpen} 
-        onOpenChange={(open) => setConfirmState(prev => ({ ...prev, isOpen: open }))}
+
+      <ConfirmDialog
+        open={confirmState.isOpen}
+        onOpenChange={(open) =>
+          setConfirmState((prev) => ({ ...prev, isOpen: open }))
+        }
         title="Delete Testimonial"
         description="Are you sure you want to delete this testimonial? This action cannot be undone."
         onConfirm={confirmDelete}
