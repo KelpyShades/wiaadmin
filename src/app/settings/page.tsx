@@ -8,7 +8,14 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Image as ImageIcon, Sliders, Calendar, DollarSign, Landmark } from "lucide-react";
+import {
+  Loader2,
+  Image as ImageIcon,
+  Sliders,
+  Calendar,
+  DollarSign,
+  Landmark,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +29,13 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 
@@ -156,7 +169,7 @@ export default function SettingsPage() {
         ...values,
         heroImageId,
       });
-      
+
       setSelectedImage(null);
       alert("Successfully updated Global Settings!");
     } catch (error) {
@@ -178,7 +191,9 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Global Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+          Global Settings
+        </h1>
         <p className="mt-1 text-sm text-zinc-500">
           Configure shared content, cohorts, and packages across the main site.
         </p>
@@ -208,7 +223,9 @@ export default function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Hero Quote</CardTitle>
-                    <CardDescription>Configure the featured quote card on the landing page.</CardDescription>
+                    <CardDescription>
+                      Configure the featured quote card on the landing page.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <FormField
@@ -218,7 +235,11 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Quote Text</FormLabel>
                           <FormControl>
-                            <Textarea placeholder="We are women of excellence..." className="min-h-25" {...field} />
+                            <Textarea
+                              placeholder="We are women of excellence..."
+                              className="min-h-25"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -231,7 +252,10 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Quote Author</FormLabel>
                           <FormControl>
-                            <Input placeholder="Emanuella Ulamba, Founder" {...field} />
+                            <Input
+                              placeholder="Emanuella Ulamba, Founder"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -243,25 +267,36 @@ export default function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Hero Image</CardTitle>
-                    <CardDescription>Upload a high-quality portrait to display in the editorial hero.</CardDescription>
+                    <CardDescription>
+                      Upload a high-quality portrait to display in the editorial
+                      hero.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex flex-col items-center justify-center p-4 border border-dashed rounded-lg border-zinc-200 bg-zinc-50/50">
                       {settings.imageUrl ? (
                         <div className="aspect-3/4 w-full max-w-40 overflow-hidden rounded-lg border border-zinc-200 shadow-sm mb-4">
-                          <img src={settings.imageUrl} alt="Current Hero" className="h-full w-full object-cover" />
+                          <Image
+                            src={settings.imageUrl}
+                            alt="Current Hero"
+                            className="h-full w-full object-cover"
+                          />
                         </div>
                       ) : (
                         <ImageIcon className="h-12 w-12 text-zinc-300 mb-2" />
                       )}
-                      <Input 
-                        type="file" 
+                      <Input
+                        type="file"
                         accept="image/*"
-                        onChange={(e) => setSelectedImage(e.target.files?.[0] || null)}
+                        onChange={(e) =>
+                          setSelectedImage(e.target.files?.[0] || null)
+                        }
                         className="max-w-xs mt-2"
                       />
                       <p className="text-xs text-zinc-500 mt-2">
-                        {selectedImage ? `Selected: ${selectedImage.name}` : "Leave empty to keep current image"}
+                        {selectedImage
+                          ? `Selected: ${selectedImage.name}`
+                          : "Leave empty to keep current image"}
                       </p>
                     </div>
                   </CardContent>
@@ -275,7 +310,10 @@ export default function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Cohort Schedule & Availability</CardTitle>
-                    <CardDescription>Set the size limit, application deadline, and starting date of the upcoming cohort.</CardDescription>
+                    <CardDescription>
+                      Set the size limit, application deadline, and starting
+                      date of the upcoming cohort.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <FormField
@@ -285,9 +323,17 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Seats Available</FormLabel>
                           <FormControl>
-                            <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                            <Input
+                              type="number"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
                           </FormControl>
-                          <FormDescription>Number of spots open for enrollment (e.g. 5)</FormDescription>
+                          <FormDescription>
+                            Number of spots open for enrollment (e.g. 5)
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -299,7 +345,10 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Application Deadline</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. July 18, 2026" {...field} />
+                            <Input
+                              placeholder="e.g. July 18, 2026"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -312,7 +361,10 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Cohort Start Date</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g. July 27, 2026" {...field} />
+                            <Input
+                              placeholder="e.g. July 27, 2026"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -324,7 +376,10 @@ export default function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Badges / Stats Section</CardTitle>
-                    <CardDescription>Edit the three prominent numbers and labels displayed on the landing page.</CardDescription>
+                    <CardDescription>
+                      Edit the three prominent numbers and labels displayed on
+                      the landing page.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -419,12 +474,16 @@ export default function SettingsPage() {
             {/* TAB: PRICING & INSTALLMENTS */}
             <TabsContent value="pricing" className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
-                
                 {/* FOUNDATION PACK */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-plum">The Foundation (Tier 1)</CardTitle>
-                    <CardDescription>Setup pricing and monthly payment installments for the Foundation tier.</CardDescription>
+                    <CardTitle className="text-plum">
+                      The Foundation (Tier 1)
+                    </CardTitle>
+                    <CardDescription>
+                      Setup pricing and monthly payment installments for the
+                      Foundation tier.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -435,7 +494,13 @@ export default function SettingsPage() {
                           <FormItem>
                             <FormLabel>Total Payment (GH₵)</FormLabel>
                             <FormControl>
-                              <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                              <Input
+                                type="number"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -448,7 +513,13 @@ export default function SettingsPage() {
                           <FormItem>
                             <FormLabel>Secure Seat Amount (GH₵)</FormLabel>
                             <FormControl>
-                              <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                              <Input
+                                type="number"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -457,8 +528,10 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="border-t pt-4 space-y-4">
-                      <h4 className="text-sm font-semibold text-zinc-900">Installment Schedule</h4>
-                      
+                      <h4 className="text-sm font-semibold text-zinc-900">
+                        Installment Schedule
+                      </h4>
+
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -480,7 +553,13 @@ export default function SettingsPage() {
                             <FormItem>
                               <FormLabel>1st Installment (GH₵)</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -496,7 +575,10 @@ export default function SettingsPage() {
                             <FormItem>
                               <FormLabel>2nd Installment Month</FormLabel>
                               <FormControl>
-                                <Input placeholder="e.g. September" {...field} />
+                                <Input
+                                  placeholder="e.g. September"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -509,7 +591,13 @@ export default function SettingsPage() {
                             <FormItem>
                               <FormLabel>2nd Installment (GH₵)</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -523,8 +611,13 @@ export default function SettingsPage() {
                 {/* FULL EXPERIENCE PACK */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-soft-gold">The Full Experience (Tier 2)</CardTitle>
-                    <CardDescription>Setup pricing and monthly payment installments for the Full Experience tier.</CardDescription>
+                    <CardTitle className="text-soft-gold">
+                      The Full Experience (Tier 2)
+                    </CardTitle>
+                    <CardDescription>
+                      Setup pricing and monthly payment installments for the
+                      Full Experience tier.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -535,7 +628,13 @@ export default function SettingsPage() {
                           <FormItem>
                             <FormLabel>Total Payment (GH₵)</FormLabel>
                             <FormControl>
-                              <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                              <Input
+                                type="number"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -548,7 +647,13 @@ export default function SettingsPage() {
                           <FormItem>
                             <FormLabel>Secure Seat Amount (GH₵)</FormLabel>
                             <FormControl>
-                              <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                              <Input
+                                type="number"
+                                {...field}
+                                onChange={(e) =>
+                                  field.onChange(Number(e.target.value))
+                                }
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -557,8 +662,10 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="border-t pt-4 space-y-4">
-                      <h4 className="text-sm font-semibold text-zinc-900">Installment Schedule</h4>
-                      
+                      <h4 className="text-sm font-semibold text-zinc-900">
+                        Installment Schedule
+                      </h4>
+
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -580,7 +687,13 @@ export default function SettingsPage() {
                             <FormItem>
                               <FormLabel>1st Installment (GH₵)</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -596,7 +709,10 @@ export default function SettingsPage() {
                             <FormItem>
                               <FormLabel>2nd Installment Month</FormLabel>
                               <FormControl>
-                                <Input placeholder="e.g. September" {...field} />
+                                <Input
+                                  placeholder="e.g. September"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -609,7 +725,13 @@ export default function SettingsPage() {
                             <FormItem>
                               <FormLabel>2nd Installment (GH₵)</FormLabel>
                               <FormControl>
-                                <Input type="number" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                                <Input
+                                  type="number"
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -628,7 +750,9 @@ export default function SettingsPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Bank Details</CardTitle>
-                    <CardDescription>Configure bank details sent to sponsors.</CardDescription>
+                    <CardDescription>
+                      Configure bank details sent to sponsors.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <FormField
@@ -638,7 +762,10 @@ export default function SettingsPage() {
                         <FormItem>
                           <FormLabel>Account Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Women of Influence Academy" {...field} />
+                            <Input
+                              placeholder="Women of Influence Academy"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -676,10 +803,19 @@ export default function SettingsPage() {
             </TabsContent>
           </Tabs>
 
-          <Button type="submit" disabled={isSaving} className="w-full md:w-auto px-8">
+          <Button
+            type="submit"
+            disabled={isSaving}
+            className="w-full md:w-auto px-8"
+          >
             {isSaving ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving Settings...</>
-            ) : "Save Settings"}
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving
+                Settings...
+              </>
+            ) : (
+              "Save Settings"
+            )}
           </Button>
         </form>
       </Form>
