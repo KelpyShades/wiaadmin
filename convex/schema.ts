@@ -159,5 +159,15 @@ export default defineSchema({
   newsletterSubscribers: defineTable({
     email: v.string(),
     subscribedAt: v.number(),
+  }),
+
+  // Licensing & Registrations
+  licenses: defineTable({
+    country: v.string(),
+    body: v.string(),
+    licenseName: v.string(),
+    licenseNumber: v.string(),
+    flagCode: v.optional(v.string()), // e.g., "ca", "ng", "gh"
+    imageId: v.optional(v.id("_storage")), // custom logo/flag
   })
 });

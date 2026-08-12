@@ -21,6 +21,7 @@ import type * as globalSettings from "../globalSettings.js";
 import type * as http from "../http.js";
 import type * as inbox from "../inbox.js";
 import type * as invites from "../invites.js";
+import type * as licenses from "../licenses.js";
 import type * as newsletter from "../newsletter.js";
 import type * as resources from "../resources.js";
 import type * as testimonials from "../testimonials.js";
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   inbox: typeof inbox;
   invites: typeof invites;
+  licenses: typeof licenses;
   newsletter: typeof newsletter;
   resources: typeof resources;
   testimonials: typeof testimonials;
