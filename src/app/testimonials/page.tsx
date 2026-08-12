@@ -77,6 +77,7 @@ export default function TestimonialsPage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean;
@@ -126,25 +127,60 @@ export default function TestimonialsPage() {
     }
   };
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, onProgress?: (percent: number) => void) => {
     const postUrl = await generateUploadUrl();
-    const result = await fetch(postUrl, {
-      method: "POST",
-      headers: { "Content-Type": file.type },
-      body: file,
+    return new Promise<Id<"_storage">>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", postUrl, true);
+      xhr.setRequestHeader("Content-Type", file.type);
+
+      if (onProgress && xhr.upload) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentage = Math.round((event.loaded / event.total) * 100);
+            onProgress(percentage);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response.storageId as Id<"_storage">);
+          } catch (e) {
+            reject(new Error("Failed to parse upload response"));
+          }
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new Error("Network error during upload"));
+      };
+
+      xhr.send(file);
     });
-    const { storageId } = await result.json();
-    return storageId as Id<"_storage">;
   };
 
   const onSubmit = async (values: FormValues) => {
     setIsUploading(true);
+    setUploadProgress(0);
     try {
       let imageId: Id<"_storage"> | undefined = undefined;
       let videoId: Id<"_storage"> | undefined = undefined;
 
-      if (selectedImage) imageId = await handleUpload(selectedImage);
-      if (selectedVideo) videoId = await handleUpload(selectedVideo);
+      if (selectedImage) {
+        imageId = await handleUpload(selectedImage, (percent) => {
+          setUploadProgress(percent);
+        });
+      }
+      if (selectedVideo) {
+        videoId = await handleUpload(selectedVideo, (percent) => {
+          setUploadProgress(percent);
+        });
+      }
 
       await addTestimonial({
         ...values,
@@ -157,6 +193,7 @@ export default function TestimonialsPage() {
       console.error("Upload failed", error);
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -399,6 +436,21 @@ export default function TestimonialsPage() {
                   </div>
                 )}
               </div>
+
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm font-medium text-zinc-700">
+                    <span>Uploading files...</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden border border-zinc-200">
+                    <div
+                      className="h-full bg-primary transition-all duration-150 ease-out"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div className="pt-4 flex justify-end">
                 <Button type="submit" disabled={isUploading}>
