@@ -94,10 +94,48 @@ export const sendSponsorshipConfirmation = action({
     bankAccountName: v.string(),
     bankAccountNumber: v.string(),
     bankName: v.string(),
+    usdBankAccountName: v.optional(v.string()),
+    usdBankAccountNumber: v.optional(v.string()),
+    usdBankName: v.optional(v.string()),
+    usdRoutingNumber: v.optional(v.string()),
+    usdSwiftCode: v.optional(v.string()),
+    eurBankAccountName: v.optional(v.string()),
+    eurIban: v.optional(v.string()),
+    eurBankName: v.optional(v.string()),
+    eurSwiftCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     
     try {
+      // Build dynamic HTML for bank details based on what is configured
+      const hasUsd = args.usdBankAccountNumber && args.usdBankAccountNumber !== "N/A" && args.usdBankAccountNumber !== "";
+      const hasEur = args.eurIban && args.eurIban !== "N/A" && args.eurIban !== "";
+
+      const usdHtml = hasUsd ? `
+        <div style="margin-top: 15px; padding: 10px; border: 1px solid #e4e4e7; border-radius: 6px; background-color: #fafafa;">
+          <h4 style="margin: 0 0 10px 0; color: #18181b;">USD Bank Account (International Transfer via Accrue)</h4>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li><strong>Account Name:</strong> ${args.usdBankAccountName}</li>
+            <li><strong>Account Number:</strong> ${args.usdBankAccountNumber}</li>
+            <li><strong>Bank Name:</strong> ${args.usdBankName}</li>
+            ${args.usdRoutingNumber ? `<li><strong>Routing Number:</strong> ${args.usdRoutingNumber}</li>` : ""}
+            ${args.usdSwiftCode ? `<li><strong>Swift Code / BIC:</strong> ${args.usdSwiftCode}</li>` : ""}
+          </ul>
+        </div>
+      ` : "";
+
+      const eurHtml = hasEur ? `
+        <div style="margin-top: 15px; padding: 10px; border: 1px solid #e4e4e7; border-radius: 6px; background-color: #fafafa;">
+          <h4 style="margin: 0 0 10px 0; color: #18181b;">EUR Bank Account (International Transfer via Accrue)</h4>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li><strong>Account Name:</strong> ${args.eurBankAccountName}</li>
+            <li><strong>IBAN:</strong> ${args.eurIban}</li>
+            <li><strong>Bank Name:</strong> ${args.eurBankName}</li>
+            ${args.eurSwiftCode ? `<li><strong>Swift Code / BIC:</strong> ${args.eurSwiftCode}</li>` : ""}
+          </ul>
+        </div>
+      ` : "";
+
       await resend.sendEmail(ctx, {
         from: "Women of Influence <onboarding@resend.dev>",
         to: args.email,
@@ -106,13 +144,21 @@ export const sendSponsorshipConfirmation = action({
           <h3>Hello ${args.name},</h3>
           <p>Thank you for initiating a sponsorship of <strong>${args.amountDisplay}</strong>.</p>
           <p>Your support directly enables qualified women to receive high-level leadership training.</p>
-          <p>Please complete your contribution by transferring to the following bank account:</p>
-          <ul>
-            <li><strong>Account Name:</strong> ${args.bankAccountName}</li>
-            <li><strong>Account Number:</strong> ${args.bankAccountNumber}</li>
-            <li><strong>Bank Name:</strong> ${args.bankName}</li>
-          </ul>
-          <p>Once you have made the transfer, please reply to this email with your receipt so we can finalize the transaction.</p>
+          <p>Please complete your contribution by transferring to any of the following bank accounts:</p>
+          
+          <div style="padding: 10px; border: 1px solid #e4e4e7; border-radius: 6px; background-color: #fafafa;">
+            <h4 style="margin: 0 0 10px 0; color: #18181b;">Local Bank Account (GHS/African Payments)</h4>
+            <ul style="margin: 0; padding-left: 20px;">
+              <li><strong>Account Name:</strong> ${args.bankAccountName}</li>
+              <li><strong>Account Number:</strong> ${args.bankAccountNumber}</li>
+              <li><strong>Bank Name:</strong> ${args.bankName}</li>
+            </ul>
+          </div>
+          
+          ${usdHtml}
+          ${eurHtml}
+          
+          <p style="margin-top: 20px;">Once you have made the transfer, please reply to this email with your receipt so we can finalize the transaction.</p>
           <br/>
           <p>Warm regards,<br/>Women of Influence Academy</p>
         `
