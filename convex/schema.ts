@@ -72,6 +72,19 @@ export default defineSchema({
     bankAccountName: v.optional(v.string()),
     bankAccountNumber: v.optional(v.string()),
     bankName: v.optional(v.string()),
+
+    // USD Bank Details for Sponsorships
+    usdBankAccountName: v.optional(v.string()),
+    usdBankAccountNumber: v.optional(v.string()),
+    usdBankName: v.optional(v.string()),
+    usdRoutingNumber: v.optional(v.string()),
+    usdSwiftCode: v.optional(v.string()),
+
+    // EUR Bank Details for Sponsorships
+    eurBankAccountName: v.optional(v.string()),
+    eurIban: v.optional(v.string()),
+    eurBankName: v.optional(v.string()),
+    eurSwiftCode: v.optional(v.string()),
   }),
 
   // Testimonials & Success Stories
@@ -126,7 +139,8 @@ export default defineSchema({
     vision: v.string(),
     referral: v.optional(v.string()),
     amount: v.number(), // Amount paid
-    paymentReference: v.optional(v.string()), // Paystack reference
+    currency: v.optional(v.string()), // Payment currency
+    paymentReference: v.optional(v.string()), // Paystack/Accrue reference
     paymentStatus: v.union(v.literal("pending"), v.literal("success"), v.literal("failed")),
   }),
   
@@ -135,7 +149,9 @@ export default defineSchema({
     email: v.string(),
     organization: v.optional(v.string()),
     amount: v.number(),
+    currency: v.optional(v.string()),
     status: v.union(v.literal("pending"), v.literal("success"), v.literal("failed")),
+    paymentReference: v.optional(v.string()),
   }),
   
   partnerships: defineTable({

@@ -15,6 +15,8 @@ import {
   Calendar,
   DollarSign,
   Landmark,
+  Globe,
+  Coins,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -66,6 +68,15 @@ const settingsSchema = z.object({
   bankAccountName: z.string().min(1, "Required"),
   bankAccountNumber: z.string().min(1, "Required"),
   bankName: z.string().min(1, "Required"),
+  usdBankAccountName: z.string().optional(),
+  usdBankAccountNumber: z.string().optional(),
+  usdBankName: z.string().optional(),
+  usdRoutingNumber: z.string().optional(),
+  usdSwiftCode: z.string().optional(),
+  eurBankAccountName: z.string().optional(),
+  eurIban: z.string().optional(),
+  eurBankName: z.string().optional(),
+  eurSwiftCode: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof settingsSchema>;
@@ -107,6 +118,15 @@ export default function SettingsPage() {
       bankAccountName: "",
       bankAccountNumber: "",
       bankName: "",
+      usdBankAccountName: "",
+      usdBankAccountNumber: "",
+      usdBankName: "",
+      usdRoutingNumber: "",
+      usdSwiftCode: "",
+      eurBankAccountName: "",
+      eurIban: "",
+      eurBankName: "",
+      eurSwiftCode: "",
     },
   });
 
@@ -139,6 +159,15 @@ export default function SettingsPage() {
         bankAccountName: settings.bankAccountName || "",
         bankAccountNumber: settings.bankAccountNumber || "",
         bankName: settings.bankName || "",
+        usdBankAccountName: settings.usdBankAccountName || "",
+        usdBankAccountNumber: settings.usdBankAccountNumber || "",
+        usdBankName: settings.usdBankName || "",
+        usdRoutingNumber: settings.usdRoutingNumber || "",
+        usdSwiftCode: settings.usdSwiftCode || "",
+        eurBankAccountName: settings.eurBankAccountName || "",
+        eurIban: settings.eurIban || "",
+        eurBankName: settings.eurBankName || "",
+        eurSwiftCode: settings.eurSwiftCode || "",
       });
     }
   }, [settings, form]);
@@ -746,15 +775,24 @@ export default function SettingsPage() {
 
             {/* TAB: BANK DETAILS */}
             <TabsContent value="bank" className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Bank Details</CardTitle>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Local African Account */}
+                <Card className="border border-emerald-100 shadow-sm">
+                  <CardHeader className="bg-emerald-50/50 pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-emerald-800 flex items-center gap-2">
+                        <Landmark className="h-5 w-5 text-emerald-600" />
+                        African Account
+                      </CardTitle>
+                      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">
+                        Local Currency
+                      </span>
+                    </div>
                     <CardDescription>
-                      Configure bank details sent to sponsors.
+                      Default bank details for GHS and other African transfers.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-5">
                     <FormField
                       control={form.control}
                       name="bankAccountName"
@@ -792,6 +830,169 @@ export default function SettingsPage() {
                           <FormLabel>Bank Name</FormLabel>
                           <FormControl>
                             <Input placeholder="GT Bank" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* USD Account */}
+                <Card className="border border-blue-100 shadow-sm">
+                  <CardHeader className="bg-blue-50/50 pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-blue-800 flex items-center gap-2">
+                        <Coins className="h-5 w-5 text-blue-600" />
+                        USD Account (Accrue)
+                      </CardTitle>
+                      <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+                        USD Currency
+                      </span>
+                    </div>
+                    <CardDescription>
+                      USD account details for international sponsors outside Africa.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-5">
+                    <FormField
+                      control={form.control}
+                      name="usdBankAccountName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Women of Influence Academy (USD)"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="usdBankAccountNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="9876543210" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="usdBankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Accrue Bank USA" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="usdRoutingNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Routing Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="123456789" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="usdSwiftCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>SWIFT / BIC Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="ABCBUS33XXX" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* EUR Account */}
+                <Card className="border border-purple-100 shadow-sm">
+                  <CardHeader className="bg-purple-50/50 pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-purple-800 flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-purple-600" />
+                        EUR Account (Accrue)
+                      </CardTitle>
+                      <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
+                        EUR Currency
+                      </span>
+                    </div>
+                    <CardDescription>
+                      EUR account details for international sponsors outside Africa.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-5">
+                    <FormField
+                      control={form.control}
+                      name="eurBankAccountName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Women of Influence Academy (EUR)"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="eurIban"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>IBAN</FormLabel>
+                          <FormControl>
+                            <Input placeholder="EU12345678901234567890" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="eurBankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Accrue Bank Europe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="eurSwiftCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>SWIFT / BIC Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="ABCBEE22XXX" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as accrue from "../accrue.js";
 import type * as admin from "../admin.js";
 import type * as adminFunctions from "../adminFunctions.js";
 import type * as auth from "../auth.js";
@@ -33,6 +34,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accrue: typeof accrue;
   admin: typeof admin;
   adminFunctions: typeof adminFunctions;
   auth: typeof auth;

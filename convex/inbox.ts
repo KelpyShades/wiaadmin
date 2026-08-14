@@ -89,10 +89,17 @@ export const submitSponsorship = mutation({
     email: v.string(),
     organization: v.optional(v.string()),
     amount: v.number(),
+    currency: v.optional(v.string()),
+    paymentReference: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const sponsorshipId = await ctx.db.insert("sponsorships", {
-      ...args,
+      name: args.name,
+      email: args.email,
+      organization: args.organization,
+      amount: args.amount,
+      currency: args.currency,
+      paymentReference: args.paymentReference,
       status: "pending",
     });
 
@@ -102,14 +109,25 @@ export const submitSponsorship = mutation({
     const bankAccountNumber = settings?.bankAccountNumber || "N/A";
     const bankName = settings?.bankName || "N/A";
 
+    const currencySymbol = args.currency === "USD" ? "$" : args.currency === "EUR" ? "€" : args.currency || "GH₵";
+
     // Send sponsorship confirmation with bank details
     await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipConfirmation, {
       email: args.email,
       name: args.name,
-      amountDisplay: "GH₵ " + args.amount,
+      amountDisplay: currencySymbol + " " + args.amount,
       bankAccountName,
       bankAccountNumber,
       bankName,
+      usdBankAccountName: settings?.usdBankAccountName,
+      usdBankAccountNumber: settings?.usdBankAccountNumber,
+      usdBankName: settings?.usdBankName,
+      usdRoutingNumber: settings?.usdRoutingNumber,
+      usdSwiftCode: settings?.usdSwiftCode,
+      eurBankAccountName: settings?.eurBankAccountName,
+      eurIban: settings?.eurIban,
+      eurBankName: settings?.eurBankName,
+      eurSwiftCode: settings?.eurSwiftCode,
     });
 
     return sponsorshipId;
@@ -166,5 +184,82 @@ export const deletePartnership = mutation({
   args: { id: v.id("partnerships") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+  },
+});
+
+export const updatePaymentStatusByReference = mutation({
+  args: {
+    reference: v.string(),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // 1. Check if reference matches an application's paymentReference
+    const application = await ctx.db
+      .query("applications")
+      .filter((q) => q.eq(q.field("paymentReference"), args.reference))
+      .first();
+
+    if (application) {
+      const paymentStatus = args.status === "completed" || args.status === "success" 
+        ? "success" 
+        : args.status === "failed" 
+          ? "failed" 
+          : "pending";
+      await ctx.db.patch(application._id, { paymentStatus });
+      return { type: "application", id: application._id, status: paymentStatus };
+    }
+
+    // 2. Check if reference matches a sponsorship's paymentReference
+    const sponsorship = await ctx.db
+      .query("sponsorships")
+      .filter((q) => q.eq(q.field("paymentReference"), args.reference))
+      .first();
+
+    if (sponsorship) {
+      const status = args.status === "completed" || args.status === "success"
+        ? "success"
+        : args.status === "failed"
+          ? "failed"
+          : "pending";
+      await ctx.db.patch(sponsorship._id, { status });
+      return { type: "sponsorship", id: sponsorship._id, status };
+    }
+
+    // 3. Check if reference is a direct document ID
+    try {
+      // Check if reference is a valid ID for applications
+      const appId = ctx.db.normalizeId("applications", args.reference);
+      if (appId) {
+        const appById = await ctx.db.get(appId);
+        if (appById) {
+          const paymentStatus = args.status === "completed" || args.status === "success"
+            ? "success"
+            : args.status === "failed"
+              ? "failed"
+              : "pending";
+          await ctx.db.patch(appById._id, { paymentStatus });
+          return { type: "application", id: appById._id, status: paymentStatus };
+        }
+      }
+
+      // Check if reference is a valid ID for sponsorships
+      const sponId = ctx.db.normalizeId("sponsorships", args.reference);
+      if (sponId) {
+        const sponById = await ctx.db.get(sponId);
+        if (sponById) {
+          const status = args.status === "completed" || args.status === "success"
+            ? "success"
+            : args.status === "failed"
+              ? "failed"
+              : "pending";
+          await ctx.db.patch(sponById._id, { status });
+          return { type: "sponsorship", id: sponById._id, status };
+        }
+      }
+    } catch (e) {
+      // Reference was not a valid document ID format
+    }
+
+    return { type: "not_found" };
   },
 });
