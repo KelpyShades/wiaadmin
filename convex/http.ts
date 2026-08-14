@@ -13,37 +13,37 @@ http.route({
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     const webhookToken = process.env.ACCRUE_WEBHOOK_TOKEN;
-    const requestToken = request.headers.get("x-cashramp-token") || request.headers.get("X-CASHRAMP-TOKEN");
+    const requestToken = request.headers.get("x-cashramp-token") || request.headers.get("X-CASHRAMP-TOKEN") || request.headers.get("Authorization");
 
-    if (!webhookToken) {
-      console.error("ACCRUE_WEBHOOK_TOKEN environment variable is not configured");
-      return new Response("Webhook token not configured", { status: 500 });
-    }
-
-    if (requestToken !== webhookToken) {
-      console.warn("Unauthorized webhook attempt: token mismatch");
-      return new Response("Unauthorized signature", { status: 401 });
+    if (webhookToken) {
+      const cleanToken = requestToken?.startsWith("Bearer ") ? requestToken.substring(7) : requestToken;
+      if (cleanToken !== webhookToken) {
+        console.warn("Unauthorized webhook attempt: token mismatch");
+        return new Response("Unauthorized signature", { status: 401 });
+      }
+    } else {
+      console.log("ACCRUE_WEBHOOK_TOKEN environment variable is not configured. Skipping verification (dev/testing mode).");
     }
 
     try {
       const body = await request.json();
       console.log("Accrue Webhook payload received:", body);
 
-      const eventType = body.event_type;
-      const data = body.data;
+      const reference = body.reference || body.data?.reference;
+      const status = body.status || body.data?.status || "";
 
-      if (!data || !data.reference) {
-        console.warn("Invalid webhook payload: missing data or reference");
+      if (!reference) {
+        console.warn("Invalid webhook payload: missing reference identifier");
         return new Response("Invalid payload", { status: 400 });
       }
 
       // Update payment status for application/sponsorship in the database
       const result = await ctx.runMutation(api.inbox.updatePaymentStatusByReference, {
-        reference: data.reference,
-        status: data.status || "",
+        reference,
+        status,
       });
 
-      console.log("Successfully processed webhook for reference:", data.reference, result);
+      console.log("Successfully processed webhook for reference:", reference, result);
       return new Response(JSON.stringify({ success: true, result }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
