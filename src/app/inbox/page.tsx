@@ -24,6 +24,43 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GHS: "GH₵",
+  USD: "$",
+  GBP: "£",
+  EUR: "€",
+  CAD: "CA$",
+  NGN: "₦",
+  KES: "KSh",
+  ZAR: "R",
+  EGP: "E£",
+  MAD: "DH",
+  DZD: "DA",
+  TND: "DT",
+  BWP: "P",
+  RWF: "FRw",
+  UGX: "USh",
+  ZMW: "ZK",
+  MZN: "MT",
+  ETB: "Br",
+  MUR: "₨",
+  TZS: "TSh",
+  XOF: "CFA",
+  XAF: "FCFA",
+  ZWG: "ZiG",
+};
+
+function formatCurrency(amount: number, currencyCode?: string): string {
+  const code = currencyCode ? currencyCode.toUpperCase() : "GHS";
+  const symbol = CURRENCY_SYMBOLS[code] || code;
+  const isDecimal = ["USD", "GBP", "EUR", "CAD"].includes(code);
+  const formattedAmount = amount.toLocaleString(undefined, {
+    minimumFractionDigits: isDecimal ? (amount % 1 !== 0 ? 2 : 0) : 0,
+    maximumFractionDigits: 2,
+  });
+  return `${symbol} ${formattedAmount}`;
+}
+
 interface ApplicationRecord {
   _id: Id<"applications">;
   fullName: string;
@@ -36,6 +73,7 @@ interface ApplicationRecord {
   vision: string;
   referral?: string;
   amount: number;
+  currency?: string;
   paymentReference?: string;
   paymentStatus: "pending" | "success" | "failed";
 }
@@ -55,6 +93,8 @@ interface SponsorshipRecord {
   email: string;
   organization?: string;
   amount: number;
+  currency?: string;
+  paymentReference?: string;
   status: string;
   _creationTime: number;
 }
@@ -129,7 +169,7 @@ export default function InboxPage() {
                       <TableCell className="font-medium">{app.fullName}</TableCell>
                       <TableCell>{app.email}</TableCell>
                       <TableCell className="text-xs max-w-37.5 truncate">{app.packageName}</TableCell>
-                      <TableCell>GH₵ {app.amount}</TableCell>
+                      <TableCell>{formatCurrency(app.amount, app.currency)}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                           app.paymentStatus === 'success' ? 'bg-green-50 text-green-700 ring-green-600/20' :
@@ -199,7 +239,7 @@ export default function InboxPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Amount (GH₵)</TableHead>
+                  <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -222,7 +262,16 @@ export default function InboxPage() {
                       </TableCell>
                       <TableCell className="font-medium">{spon.name}</TableCell>
                       <TableCell>{spon.email}</TableCell>
-                      <TableCell>{spon.amount}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <span>{formatCurrency(spon.amount, spon.currency)}</span>
+                          {spon.currency && (
+                            <span className="text-[10px] uppercase font-semibold text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded">
+                              {spon.currency}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                           spon.status === 'success' ? 'bg-green-50 text-green-700 ring-green-600/20' :
@@ -318,7 +367,7 @@ export default function InboxPage() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-zinc-500 block text-xs uppercase">Amount</span>
-                    <span className="font-semibold text-zinc-900">GH₵ {selectedApp.amount}</span>
+                    <span className="font-semibold text-zinc-900">{formatCurrency(selectedApp.amount, selectedApp.currency)}</span>
                   </div>
                   <div>
                     <span className="text-zinc-500 block text-xs uppercase">Status</span>
@@ -449,8 +498,23 @@ export default function InboxPage() {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-zinc-500">Amount Pledged</h3>
-                <p className="mt-1 text-xl font-medium text-zinc-900">GH₵ {selectedSponsorship.amount}</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <p className="text-xl font-medium text-zinc-900">
+                    {formatCurrency(selectedSponsorship.amount, selectedSponsorship.currency)}
+                  </p>
+                  {selectedSponsorship.currency && (
+                    <span className="inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700">
+                      {selectedSponsorship.currency}
+                    </span>
+                  )}
+                </div>
               </div>
+              {selectedSponsorship.paymentReference && (
+                <div>
+                  <h3 className="text-sm font-medium text-zinc-500">Payment Reference</h3>
+                  <p className="mt-1 font-mono text-xs text-zinc-800">{selectedSponsorship.paymentReference}</p>
+                </div>
+              )}
               <div>
                 <h3 className="text-sm font-medium text-zinc-500">Current Status</h3>
                 <span className={`mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${

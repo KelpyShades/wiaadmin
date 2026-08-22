@@ -48,6 +48,7 @@ export const submitApplication = mutation({
     vision: v.string(),
     referral: v.optional(v.string()),
     amount: v.number(),
+    currency: v.optional(v.string()),
     paymentReference: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -109,13 +110,43 @@ export const submitSponsorship = mutation({
     const bankAccountNumber = settings?.bankAccountNumber || "N/A";
     const bankName = settings?.bankName || "N/A";
 
-    const currencySymbol = args.currency === "USD" ? "$" : args.currency === "EUR" ? "€" : args.currency || "GH₵";
+    const currencySymbols: Record<string, string> = {
+      GHS: "GH₵",
+      USD: "$",
+      GBP: "£",
+      EUR: "€",
+      CAD: "CA$",
+      NGN: "₦",
+      KES: "KSh",
+      ZAR: "R",
+      EGP: "E£",
+      MAD: "DH",
+      DZD: "DA",
+      TND: "DT",
+      BWP: "P",
+      RWF: "FRw",
+      UGX: "USh",
+      ZMW: "ZK",
+      MZN: "MT",
+      ETB: "Br",
+      MUR: "₨",
+      TZS: "TSh",
+      XOF: "CFA",
+      XAF: "FCFA",
+      ZWG: "ZiG",
+    };
+    const symbol = currencySymbols[args.currency || "GHS"] || (args.currency || "GH₵");
+    const isDecimal = ["USD", "GBP", "EUR", "CAD"].includes(args.currency || "GHS");
+    const amountDisplay = symbol + " " + args.amount.toLocaleString(undefined, {
+      minimumFractionDigits: isDecimal ? (args.amount % 1 !== 0 ? 2 : 0) : 0,
+      maximumFractionDigits: 2,
+    });
 
     // Send sponsorship confirmation with bank details
     await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipConfirmation, {
       email: args.email,
       name: args.name,
-      amountDisplay: currencySymbol + " " + args.amount,
+      amountDisplay,
       bankAccountName,
       bankAccountNumber,
       bankName,
@@ -256,7 +287,7 @@ export const updatePaymentStatusByReference = mutation({
           return { type: "sponsorship", id: sponById._id, status };
         }
       }
-    } catch (e) {
+    } catch {
       // Reference was not a valid document ID format
     }
 

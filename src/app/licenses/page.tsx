@@ -7,7 +7,7 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, Edit2, Trash2, MoreHorizontal, Image as ImageIcon, Shield, Globe } from "lucide-react";
+import { Loader2, Plus, Edit2, Trash2, MoreHorizontal, Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,7 +68,7 @@ const getFlagEmoji = (countryCode?: string) => {
       .split("")
       .map((char) => 127397 + char.charCodeAt(0));
     return String.fromCodePoint(...codePoints);
-  } catch (e) {
+  } catch {
     return null;
   }
 };

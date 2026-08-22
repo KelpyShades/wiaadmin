@@ -14,7 +14,7 @@ import {
   ShoppingBag,
   BookOpen,
   Users,
-  Shield
+  Globe
 } from "lucide-react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -29,7 +29,7 @@ const NAVIGATION = [
   { name: "Inbox", href: "/inbox", icon: Handshake },
   { name: "Executives", href: "/executives", icon: Users },
   { name: "Team", href: "/team", icon: Users },
-  { name: "Licenses", href: "/licenses", icon: Shield },
+  { name: "Licenses", href: "/licenses", icon: Globe },
 ];
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
