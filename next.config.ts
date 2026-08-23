@@ -1,11 +1,13 @@
 import type { NextConfig } from "next";
+import { cwd } from "process";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: "export",
   turbopack: {
-    root: "/home/kelpyshades/Documents/GitHub/wiaadmin",
+    root: cwd(),
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
