@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { resolveMediaUrl, deleteMediaFile } from "./files";
 
 export const getBusinesses = query({
   args: {},
@@ -7,7 +8,7 @@ export const getBusinesses = query({
     const records = await ctx.db.query("businesses").collect();
     return Promise.all(
       records.map(async (record) => {
-        const imageUrl = record.imageId ? await ctx.storage.getUrl(record.imageId) : null;
+        const imageUrl = await resolveMediaUrl(ctx, record.imageId);
         return { ...record, imageUrl };
       })
     );
@@ -20,7 +21,7 @@ export const addBusiness = mutation({
     founder: v.string(),
     description: v.string(),
     website: v.string(),
-    imageId: v.optional(v.id("_storage")),
+    imageId: v.optional(v.union(v.string(), v.id("_storage"))),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("businesses", args);
@@ -34,7 +35,7 @@ export const updateBusiness = mutation({
     founder: v.string(),
     description: v.string(),
     website: v.string(),
-    imageId: v.optional(v.id("_storage")),
+    imageId: v.optional(v.union(v.string(), v.id("_storage"))),
   },
   handler: async (ctx, args) => {
     const { id, ...updates } = args;
@@ -45,6 +46,10 @@ export const updateBusiness = mutation({
 export const deleteBusiness = mutation({
   args: { id: v.id("businesses") },
   handler: async (ctx, args) => {
+    const business = await ctx.db.get(args.id);
+    if (business?.imageId) {
+      await deleteMediaFile(ctx, business.imageId);
+    }
     await ctx.db.delete(args.id);
   },
 });

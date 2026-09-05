@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
+import { resolveMediaUrl, deleteMediaFile } from "./files";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const checkAdmin = async (ctx: any) => {
@@ -21,6 +22,7 @@ const checkAdmin = async (ctx: any) => {
 
   return userId;
 };
+
 export const getExecutives = query({
   args: {},
   handler: async (ctx) => {
@@ -28,17 +30,13 @@ export const getExecutives = query({
       .query("executives")
       .collect();
       
-    // Sort by order manually if needed, or rely on client. 
-    // Best to sort here:
     const sorted = executives.sort((a, b) => a.order - b.order);
       
     return Promise.all(
       sorted.map(async (executive) => {
         return {
           ...executive,
-          imageUrl: executive.imageId 
-            ? await ctx.storage.getUrl(executive.imageId)
-            : null
+          imageUrl: await resolveMediaUrl(ctx, executive.imageId),
         };
       })
     );
@@ -50,7 +48,7 @@ export const addExecutive = mutation({
     name: v.string(),
     role: v.string(),
     bio: v.optional(v.string()),
-    imageId: v.optional(v.id("_storage")),
+    imageId: v.optional(v.union(v.string(), v.id("_storage"))),
     order: v.number(),
   },
   handler: async (ctx, args) => {
@@ -65,7 +63,7 @@ export const updateExecutive = mutation({
     name: v.string(),
     role: v.string(),
     bio: v.optional(v.string()),
-    imageId: v.optional(v.id("_storage")),
+    imageId: v.optional(v.union(v.string(), v.id("_storage"))),
     order: v.number(),
   },
   handler: async (ctx, args) => {
@@ -83,7 +81,7 @@ export const removeExecutive = mutation({
     if (!executive) throw new Error("Executive not found");
 
     if (executive.imageId) {
-      await ctx.storage.delete(executive.imageId);
+      await deleteMediaFile(ctx, executive.imageId);
     }
 
     await ctx.db.delete(args.id);

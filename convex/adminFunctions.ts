@@ -3,14 +3,13 @@ import {
   customMutation,
   customQuery,
 } from "convex-helpers/server/customFunctions";
-import { mutation, query, ActionCtx, QueryCtx, MutationCtx } from "./_generated/server";
-import { DataModel } from "./_generated/dataModel";
+import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 
 import { ConvexError } from "convex/values";
 
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-async function requireAdmin(ctx: any) {
+async function requireAdmin(ctx: QueryCtx | MutationCtx) {
   const userId = await getAuthUserId(ctx);
   if (!userId) throw new ConvexError("Not authenticated");
 
@@ -19,8 +18,8 @@ async function requireAdmin(ctx: any) {
 
   const adminRole = await ctx.db
     .query("userRoles")
-    .withIndex("by_userId", (q: any) => q.eq("userId", user._id))
-    .filter((q: any) => q.eq(q.field("role"), "admin"))
+    .withIndex("by_userId", (q) => q.eq("userId", user._id))
+    .filter((q) => q.eq(q.field("role"), "admin"))
     .unique();
 
   if (!adminRole) {

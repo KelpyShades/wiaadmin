@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.convex.site",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.womeninfluencial.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.r2.cloudflarestorage.com",
+      },
     ],
   },
 };

@@ -16,7 +16,7 @@ export const createInvite = adminMutation({
     // Set expiration to 24 hours from now
     const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
 
-    const inviteId = await ctx.db.insert("invites", {
+    await ctx.db.insert("invites", {
       email: args.email,
       token,
       expiresAt,
@@ -40,7 +40,6 @@ export const getAdmins = adminQuery({
   handler: async (ctx) => {
     const roles = await ctx.db
       .query("userRoles")
-      .withIndex("by_id")
       .filter((q) => q.eq(q.field("role"), "admin"))
       .collect();
       
@@ -77,7 +76,6 @@ export const removeAdmin = adminMutation({
     // Check if it's the last admin
     const admins = await ctx.db
       .query("userRoles")
-      .withIndex("by_id")
       .filter((q) => q.eq(q.field("role"), "admin"))
       .collect();
       

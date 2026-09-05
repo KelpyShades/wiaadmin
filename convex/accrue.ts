@@ -21,8 +21,8 @@ export const initiateAccruePayment = action({
 
     const query = `
       mutation InitiateHostedPayment(
-        $amount: Float!,
-        $currency: String!,
+        $amount: Decimal!,
+        $currency: P2PPaymentCurrency!,
         $countryCode: String!,
         $reference: String!,
         $email: String!,
@@ -45,9 +45,13 @@ export const initiateAccruePayment = action({
       }
     `;
 
+    // Accrue schema expects P2PPaymentCurrency enum values: 'usd' or 'local_currency'
+    const normalizedCurrency = args.currency.trim().toLowerCase();
+    const apiCurrency = normalizedCurrency === "usd" ? "usd" : "local_currency";
+
     const variables = {
       amount: args.amount,
-      currency: args.currency.toLowerCase(),
+      currency: apiCurrency,
       countryCode: args.countryCode.toUpperCase(),
       reference: args.reference,
       email: args.email,

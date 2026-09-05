@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { resolveMediaUrl } from "./files";
 
 export const getGlobalSettings = query({
   args: {},
@@ -51,22 +52,22 @@ export const getGlobalSettings = query({
       return defaults;
     }
 
-    // Resolve the storage URL for the hero image if uploaded
-    const imageUrl = settings.heroImageId 
-      ? await ctx.storage.getUrl(settings.heroImageId) 
+    // Resolve the media URL for the hero image if uploaded
+    const resolvedUrl = settings.heroImageId 
+      ? await resolveMediaUrl(ctx, settings.heroImageId) 
       : defaults.imageUrl;
 
     return { 
       ...defaults, 
       ...settings, 
-      imageUrl: imageUrl || defaults.imageUrl 
+      imageUrl: resolvedUrl || defaults.imageUrl 
     };
   },
 });
 
 export const updateGlobalSettings = mutation({
   args: {
-    heroImageId: v.optional(v.id("_storage")),
+    heroImageId: v.optional(v.union(v.string(), v.id("_storage"))),
     heroQuote: v.string(),
     heroQuoteAuthor: v.string(),
     seatsAvailable: v.number(),

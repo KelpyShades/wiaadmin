@@ -16,11 +16,21 @@ export const subscribe = mutation({
         email: args.email,
         subscribedAt: Date.now(),
       });
-
-      // Call action to send to Resend
-      await ctx.scheduler.runAfter(0, api.emails.addSubscriberToResend, {
-        email: args.email,
+    } else {
+      // Update subscription timestamp if already exists
+      await ctx.db.patch(existing._id, {
+        subscribedAt: Date.now(),
       });
     }
+
+    // Always trigger the webhook action to Make
+    await ctx.scheduler.runAfter(0, api.emails.addSubscriberToResend, {
+      email: args.email,
+    });
   },
 });
+
+
+
+
+

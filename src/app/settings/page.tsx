@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
+import { useUploadFile } from "@convex-dev/r2/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
@@ -84,7 +85,7 @@ type FormValues = z.infer<typeof settingsSchema>;
 export default function SettingsPage() {
   const settings = useQuery(api.globalSettings.getGlobalSettings);
   const updateSettings = useMutation(api.globalSettings.updateGlobalSettings);
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const uploadFile = useUploadFile(api.files);
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -173,20 +174,13 @@ export default function SettingsPage() {
   }, [settings, form]);
 
   const handleUpload = async (file: File) => {
-    const postUrl = await generateUploadUrl();
-    const result = await fetch(postUrl, {
-      method: "POST",
-      headers: { "Content-Type": file.type },
-      body: file,
-    });
-    const { storageId } = await result.json();
-    return storageId as Id<"_storage">;
+    return await uploadFile(file);
   };
 
   const onSubmit = async (values: FormValues) => {
     setIsSaving(true);
     try {
-      let heroImageId: Id<"_storage"> | undefined = undefined;
+      let heroImageId: string | undefined = undefined;
 
       if (selectedImage) {
         heroImageId = await handleUpload(selectedImage);

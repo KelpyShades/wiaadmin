@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
+import { useUploadFile } from "@convex-dev/r2/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
@@ -49,7 +50,7 @@ export default function GalleryPage() {
   const gallery = useQuery(api.gallery.getGallery);
   const addGalleryItem = useMutation(api.gallery.addGalleryItem);
   const deleteGalleryItem = useMutation(api.gallery.deleteGalleryItem);
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const uploadFile = useUploadFile(api.files);
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -95,14 +96,7 @@ export default function GalleryPage() {
   };
 
   const handleUpload = async (file: File) => {
-    const postUrl = await generateUploadUrl();
-    const result = await fetch(postUrl, {
-      method: "POST",
-      headers: { "Content-Type": file.type },
-      body: file,
-    });
-    const { storageId } = await result.json();
-    return storageId as Id<"_storage">;
+    return await uploadFile(file);
   };
 
   const onSubmit = async (values: FormValues) => {

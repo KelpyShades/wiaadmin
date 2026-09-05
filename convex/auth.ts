@@ -1,6 +1,6 @@
 import { convexAuth } from "@convex-dev/auth/server";
 import { Password } from "@convex-dev/auth/providers/Password";
-import { DataModel } from "./_generated/dataModel";
+import { Id } from "./_generated/dataModel";
 import { MutationCtx } from "./_generated/server";
 import { ConvexError } from "convex/values";
 
@@ -27,7 +27,7 @@ export const { auth, signIn, signOut, store } = convexAuth({
       if (existingAdmins.length === 0) {
         // It's the first admin. Allow it and assign admin role.
         await db.insert("userRoles", {
-          userId: args.userId as any,
+          userId: args.userId as Id<"users">,
           role: "admin",
         });
         return;
@@ -58,7 +58,7 @@ export const { auth, signIn, signOut, store } = convexAuth({
       
       // Assign role
       await db.insert("userRoles", {
-        userId: args.userId as any,
+        userId: args.userId as Id<"users">,
         role: invite.role,
       });
     }

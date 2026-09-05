@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
+import { useUploadFile } from "@convex-dev/r2/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
@@ -71,7 +72,7 @@ export default function TestimonialsPage() {
   const testimonials = useQuery(api.testimonials.getTestimonials);
   const addTestimonial = useMutation(api.testimonials.addTestimonial);
   const deleteTestimonial = useMutation(api.testimonials.deleteTestimonial);
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const uploadFile = useUploadFile(api.files);
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -128,39 +129,10 @@ export default function TestimonialsPage() {
   };
 
   const handleUpload = async (file: File, onProgress?: (percent: number) => void) => {
-    const postUrl = await generateUploadUrl();
-    return new Promise<Id<"_storage">>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", postUrl, true);
-      xhr.setRequestHeader("Content-Type", file.type);
-
-      if (onProgress && xhr.upload) {
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percentage = Math.round((event.loaded / event.total) * 100);
-            onProgress(percentage);
-          }
-        };
-      }
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const response = JSON.parse(xhr.responseText);
-            resolve(response.storageId as Id<"_storage">);
-          } catch (e) {
-            reject(new Error("Failed to parse upload response"));
-          }
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
-        }
-      };
-
-      xhr.onerror = () => {
-        reject(new Error("Network error during upload"));
-      };
-
-      xhr.send(file);
+    return await uploadFile(file, {
+      onProgress: onProgress ? ({ loaded, total }) => {
+        if (total > 0) onProgress(Math.round((loaded / total) * 100));
+      } : undefined,
     });
   };
 
@@ -168,8 +140,8 @@ export default function TestimonialsPage() {
     setIsUploading(true);
     setUploadProgress(0);
     try {
-      let imageId: Id<"_storage"> | undefined = undefined;
-      let videoId: Id<"_storage"> | undefined = undefined;
+      let imageId: string | undefined = undefined;
+      let videoId: string | undefined = undefined;
 
       if (selectedImage) {
         imageId = await handleUpload(selectedImage, (percent) => {

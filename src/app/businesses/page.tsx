@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
+import { useUploadFile } from "@convex-dev/r2/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
 import { z } from "zod";
@@ -58,7 +59,7 @@ export default function BusinessesPage() {
   const addBusiness = useMutation(api.businesses.addBusiness);
   const updateBusiness = useMutation(api.businesses.updateBusiness);
   const deleteBusiness = useMutation(api.businesses.deleteBusiness);
-  const generateUploadUrl = useMutation(api.files.generateUploadUrl);
+  const uploadFile = useUploadFile(api.files);
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<Id<"businesses"> | null>(null);
@@ -107,20 +108,13 @@ export default function BusinessesPage() {
   };
 
   const handleUpload = async (file: File) => {
-    const postUrl = await generateUploadUrl();
-    const result = await fetch(postUrl, {
-      method: "POST",
-      headers: { "Content-Type": file.type },
-      body: file,
-    });
-    const { storageId } = await result.json();
-    return storageId as Id<"_storage">;
+    return await uploadFile(file);
   };
 
   const onSubmit = async (values: FormValues) => {
     setIsSaving(true);
     try {
-      let imageId: Id<"_storage"> | undefined = undefined;
+      let imageId: string | undefined = undefined;
       
       if (selectedImage) {
         imageId = await handleUpload(selectedImage);
