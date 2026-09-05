@@ -16,6 +16,10 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Admin Dashboard | Women of Influence",
   description: "Manage content, applications, and settings.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
