@@ -298,7 +298,11 @@ export default function ExecutivesPage() {
                   <FormItem>
                     <FormLabel>Bio</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Brief biography..." {...field} />
+                      <Textarea
+                        placeholder="Brief biography..."
+                        className="max-h-40 overflow-y-auto"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -316,7 +320,10 @@ export default function ExecutivesPage() {
                         type="number" 
                         placeholder="1" 
                         {...field} 
-                        onChange={e => field.onChange(parseInt(e.target.value, 10))} 
+                        onChange={(e) => {
+                          const parsed = parseInt(e.target.value, 10);
+                          field.onChange(Number.isNaN(parsed) ? 0 : parsed);
+                        }} 
                       />
                     </FormControl>
                     <FormMessage />

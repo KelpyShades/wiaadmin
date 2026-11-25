@@ -96,7 +96,7 @@ export const sendSponsorshipConfirmation = action({
     isBackup: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const webhookUrl = process.env.MAKE_SPONSORSHIP_WEBHOOK;
+    const webhookUrl = process.env.MAKE_SPONSORSHIP_WEBHOOK?.trim();
     if (!webhookUrl) {
       console.warn("⚠️ MAKE_SPONSORSHIP_WEBHOOK environment variable is not set. Skipping webhook.");
       return;
@@ -133,7 +133,8 @@ export const sendSponsorshipConfirmation = action({
       });
       console.log(`📥 Make responded with status: ${response.status} (${response.statusText})`);
       if (!response.ok) {
-        throw new Error(`Make returned status ${response.status}`);
+        const errorBody = await response.text().catch(() => "");
+        throw new Error(`Make returned status ${response.status}: ${errorBody}`);
       }
     } catch (error) {
       console.error("❌ Failed to send sponsorship confirmation to Make:", error);
@@ -151,7 +152,10 @@ export const sendSponsorshipPaymentSuccess = action({
     organization: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const webhookUrl = process.env.MAKE_PAYMENT_SUCCESS_WEBHOOK || process.env.MAKE_SPONSORSHIP_WEBHOOK;
+    const webhookUrl = (
+      process.env.MAKE_PAYMENT_SUCCESS_WEBHOOK ||
+      process.env.MAKE_SPONSORSHIP_WEBHOOK
+    )?.trim();
     if (!webhookUrl) {
       console.warn("⚠️ MAKE_SPONSORSHIP_WEBHOOK / MAKE_PAYMENT_SUCCESS_WEBHOOK is not set. Skipping webhook.");
       return;
@@ -178,7 +182,8 @@ export const sendSponsorshipPaymentSuccess = action({
       });
       console.log(`📥 Make responded with status: ${response.status} (${response.statusText})`);
       if (!response.ok) {
-        throw new Error(`Make returned status ${response.status}`);
+        const errorBody = await response.text().catch(() => "");
+        throw new Error(`Make returned status ${response.status}: ${errorBody}`);
       }
     } catch (error) {
       console.error("❌ Failed to send sponsorship payment success to Make:", error);

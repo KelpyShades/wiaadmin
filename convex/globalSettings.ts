@@ -11,6 +11,7 @@ export const getGlobalSettings = query({
     const defaults = {
       heroQuote: "We are women of excellence, wisdom and wealth.",
       heroQuoteAuthor: "Emanuella Ulamba, Founder",
+      cohortName: "Cohort Pearl",
       seatsAvailable: 5,
       deadlineDate: "July 18, 2026",
       startDate: "July 27, 2026",
@@ -60,6 +61,7 @@ export const getGlobalSettings = query({
     return { 
       ...defaults, 
       ...settings, 
+      cohortName: settings.cohortName?.trim() || defaults.cohortName,
       imageUrl: resolvedUrl || defaults.imageUrl 
     };
   },
@@ -70,6 +72,7 @@ export const updateGlobalSettings = mutation({
     heroImageId: v.optional(v.union(v.string(), v.id("_storage"))),
     heroQuote: v.string(),
     heroQuoteAuthor: v.string(),
+    cohortName: v.string(),
     seatsAvailable: v.number(),
     deadlineDate: v.string(),
     startDate: v.string(),

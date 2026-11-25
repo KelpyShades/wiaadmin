@@ -40,6 +40,7 @@ export default defineSchema({
     heroQuoteAuthor: v.string(),
     
     // Cohort details
+    cohortName: v.optional(v.string()),
     seatsAvailable: v.number(),
     deadlineDate: v.string(),
     startDate: v.string(),

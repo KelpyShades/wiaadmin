@@ -1,10 +1,9 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { resolveMediaUrl, deleteMediaFile } from "./files";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const checkAdmin = async (ctx: any) => {
+const checkAdmin = async (ctx: QueryCtx | MutationCtx) => {
   const userId = await getAuthUserId(ctx);
   if (!userId) {
     throw new Error("Unauthenticated");
@@ -12,8 +11,7 @@ const checkAdmin = async (ctx: any) => {
 
   const role = await ctx.db
     .query("userRoles")
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .withIndex("by_userId", (q: any) => q.eq("userId", userId))
+    .withIndex("by_userId", (q) => q.eq("userId", userId))
     .first();
 
   if (!role || role.role !== "admin") {

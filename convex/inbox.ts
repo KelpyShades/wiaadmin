@@ -1,6 +1,107 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, MutationCtx } from "./_generated/server";
 import { api } from "./_generated/api";
+import { Doc } from "./_generated/dataModel";
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GHS: "GH₵",
+  USD: "$",
+  NGN: "₦",
+  GBP: "£",
+  EUR: "€",
+  CAD: "CA$",
+  KES: "KSh",
+  ZAR: "R",
+  EGP: "E£",
+  MAD: "DH",
+  DZD: "DA",
+  TND: "DT",
+  BWP: "P",
+  RWF: "FRw",
+  UGX: "USh",
+  ZMW: "ZK",
+  MZN: "MT",
+  ETB: "Br",
+  MUR: "₨",
+  TZS: "TSh",
+  XOF: "CFA",
+  XAF: "FCFA",
+  ZWG: "ZiG",
+};
+
+function formatSponsorshipAmount(amount: number, currency?: string): string {
+  const code = (currency || "GHS").toUpperCase();
+  const symbol = CURRENCY_SYMBOLS[code] || code;
+  const hasDecimals = ["USD", "GBP", "EUR", "CAD"].includes(code);
+  return (
+    symbol +
+    " " +
+    amount.toLocaleString(undefined, {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: hasDecimals ? 2 : 0,
+    })
+  );
+}
+
+async function scheduleSponsorshipBankDetailsEmail(
+  ctx: MutationCtx,
+  sponsorship: {
+    email: string;
+    name: string;
+    amount: number;
+    currency?: string;
+  },
+  isBackup: boolean
+) {
+  const settings = await ctx.db.query("globalSettings").first();
+  const bankAccountName = settings?.bankAccountName || "Women of Influence";
+  const bankAccountNumber = settings?.bankAccountNumber || "N/A";
+  const bankName = settings?.bankName || "N/A";
+  const amountDisplay = formatSponsorshipAmount(
+    sponsorship.amount,
+    sponsorship.currency
+  );
+
+  await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipConfirmation, {
+    email: sponsorship.email,
+    name: sponsorship.name,
+    amountDisplay,
+    bankAccountName,
+    bankAccountNumber,
+    bankName,
+    usdBankAccountName: settings?.usdBankAccountName,
+    usdBankAccountNumber: settings?.usdBankAccountNumber,
+    usdBankName: settings?.usdBankName,
+    usdRoutingNumber: settings?.usdRoutingNumber,
+    usdSwiftCode: settings?.usdSwiftCode,
+    eurBankAccountName: settings?.eurBankAccountName,
+    eurIban: settings?.eurIban,
+    eurBankName: settings?.eurBankName,
+    eurSwiftCode: settings?.eurSwiftCode,
+    isBackup,
+  });
+}
+
+async function scheduleSponsorshipPaymentSuccessEmail(
+  ctx: MutationCtx,
+  sponsorship: Doc<"sponsorships">,
+  paymentReference?: string
+) {
+  const amountDisplay = formatSponsorshipAmount(
+    sponsorship.amount,
+    sponsorship.currency
+  );
+
+  await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipPaymentSuccess, {
+    email: sponsorship.email,
+    name: sponsorship.name,
+    amountDisplay,
+    currency: sponsorship.currency,
+    paymentReference:
+      paymentReference || sponsorship.paymentReference || sponsorship._id,
+    organization: sponsorship.organization,
+  });
+}
 
 export const getApplications = query({
   args: {},
@@ -113,49 +214,34 @@ export const submitSponsorship = mutation({
       status: "pending",
     });
 
-    // Only send the bank details email if not explicitly skipped (e.g. for non-African sponsorships)
+    // Only send the bank details email if not explicitly skipped (e.g. for online African payments)
     if (args.sendBankDetailsEmail !== false) {
-      const settings = await ctx.db.query("globalSettings").first();
-      const bankAccountName = settings?.bankAccountName || "Women of Influence";
-      const bankAccountNumber = settings?.bankAccountNumber || "N/A";
-      const bankName = settings?.bankName || "N/A";
-
-      const currencySymbols: Record<string, string> = {
-        GHS: "GH₵",
-        USD: "$",
-        NGN: "₦",
-        GBP: "£",
-        EUR: "€",
-        CAD: "CA$",
-        KES: "KSh"
-      };
-      const symbol = currencySymbols[args.currency || "GHS"] || (args.currency || "GH₵");
-      const amountDisplay = symbol + " " + args.amount.toLocaleString(undefined, {
-        minimumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(args.currency || "GHS") ? 2 : 0,
-        maximumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(args.currency || "GHS") ? 2 : 0,
-      });
-
-      await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipConfirmation, {
-        email: args.email,
-        name: args.name,
-        amountDisplay,
-        bankAccountName,
-        bankAccountNumber,
-        bankName,
-        usdBankAccountName: settings?.usdBankAccountName,
-        usdBankAccountNumber: settings?.usdBankAccountNumber,
-        usdBankName: settings?.usdBankName,
-        usdRoutingNumber: settings?.usdRoutingNumber,
-        usdSwiftCode: settings?.usdSwiftCode,
-        eurBankAccountName: settings?.eurBankAccountName,
-        eurIban: settings?.eurIban,
-        eurBankName: settings?.eurBankName,
-        eurSwiftCode: settings?.eurSwiftCode,
-        isBackup: false,
-      });
+      await scheduleSponsorshipBankDetailsEmail(
+        ctx,
+        {
+          email: args.email,
+          name: args.name,
+          amount: args.amount,
+          currency: args.currency,
+        },
+        false
+      );
     }
 
     return sponsorshipId;
+  },
+});
+
+export const attachSponsorshipPaymentReference = mutation({
+  args: {
+    id: v.id("sponsorships"),
+    paymentReference: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const sponsorship = await ctx.db.get(args.id);
+    if (!sponsorship) return { success: false, error: "Sponsorship not found" };
+    await ctx.db.patch(args.id, { paymentReference: args.paymentReference });
+    return { success: true };
   },
 });
 
@@ -167,44 +253,7 @@ export const triggerSponsorshipBackupBankDetails = mutation({
     const sponsorship = await ctx.db.get(args.id);
     if (!sponsorship) return { success: false, error: "Sponsorship not found" };
 
-    const settings = await ctx.db.query("globalSettings").first();
-    const bankAccountName = settings?.bankAccountName || "Women of Influence";
-    const bankAccountNumber = settings?.bankAccountNumber || "N/A";
-    const bankName = settings?.bankName || "N/A";
-
-    const currencySymbols: Record<string, string> = {
-      GHS: "GH₵",
-      USD: "$",
-      NGN: "₦",
-      GBP: "£",
-      EUR: "€",
-      CAD: "CA$",
-      KES: "KSh"
-    };
-    const symbol = currencySymbols[sponsorship.currency || "GHS"] || (sponsorship.currency || "GH₵");
-    const amountDisplay = symbol + " " + sponsorship.amount.toLocaleString(undefined, {
-      minimumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(sponsorship.currency || "GHS") ? 2 : 0,
-      maximumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(sponsorship.currency || "GHS") ? 2 : 0,
-    });
-
-    await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipConfirmation, {
-      email: sponsorship.email,
-      name: sponsorship.name,
-      amountDisplay,
-      bankAccountName,
-      bankAccountNumber,
-      bankName,
-      usdBankAccountName: settings?.usdBankAccountName,
-      usdBankAccountNumber: settings?.usdBankAccountNumber,
-      usdBankName: settings?.usdBankName,
-      usdRoutingNumber: settings?.usdRoutingNumber,
-      usdSwiftCode: settings?.usdSwiftCode,
-      eurBankAccountName: settings?.eurBankAccountName,
-      eurIban: settings?.eurIban,
-      eurBankName: settings?.eurBankName,
-      eurSwiftCode: settings?.eurSwiftCode,
-      isBackup: true,
-    });
+    await scheduleSponsorshipBankDetailsEmail(ctx, sponsorship, true);
 
     return { success: true };
   },
@@ -238,7 +287,15 @@ export const updateSponsorshipStatus = mutation({
     status: v.union(v.literal("pending"), v.literal("success"), v.literal("failed")),
   },
   handler: async (ctx, args) => {
+    const sponsorship = await ctx.db.get(args.id);
+    if (!sponsorship) return;
+
+    const previousStatus = sponsorship.status;
     await ctx.db.patch(args.id, { status: args.status });
+
+    if (args.status === "success" && previousStatus !== "success") {
+      await scheduleSponsorshipPaymentSuccessEmail(ctx, sponsorship);
+    }
   },
 });
 
@@ -266,147 +323,134 @@ export const deletePartnership = mutation({
 export const updatePaymentStatusByReference = mutation({
   args: {
     reference: v.string(),
+    externalId: v.optional(v.string()),
     status: v.string(),
+    eventType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const isSuccess = args.status === "completed" || args.status === "success";
-    const isFailed = args.status === "failed";
+    const normalizedStatus = args.status.trim().toLowerCase();
+    const normalizedEvent = (args.eventType || "").trim().toLowerCase();
 
-    // 1. Check if reference matches an application's paymentReference
-    const application = await ctx.db
-      .query("applications")
-      .filter((q) => q.eq(q.field("paymentReference"), args.reference))
-      .first();
+    const successStatuses = new Set([
+      "completed",
+      "complete",
+      "success",
+      "successful",
+      "succeeded",
+      "confirmed",
+      "paid",
+      "settled",
+    ]);
+    const failedStatuses = new Set([
+      "failed",
+      "fail",
+      "canceled",
+      "cancelled",
+      "expired",
+      "declined",
+      "rejected",
+    ]);
 
-    if (application) {
-      const paymentStatus = isSuccess ? "success" : isFailed ? "failed" : "pending";
-      await ctx.db.patch(application._id, { paymentStatus });
-      return { type: "application", id: application._id, status: paymentStatus };
-    }
+    const isSuccess =
+      successStatuses.has(normalizedStatus) ||
+      (!normalizedStatus &&
+        (normalizedEvent.endsWith(".completed") ||
+          normalizedEvent.endsWith(".confirmed") ||
+          normalizedEvent.endsWith(".succeeded")));
+    const isFailed =
+      failedStatuses.has(normalizedStatus) ||
+      (!normalizedStatus &&
+        (normalizedEvent.endsWith(".failed") ||
+          normalizedEvent.endsWith(".canceled") ||
+          normalizedEvent.endsWith(".cancelled")));
 
-    const currencySymbols: Record<string, string> = {
-      GHS: "GH₵",
-      USD: "$",
-      NGN: "₦",
-      GBP: "£",
-      EUR: "€",
-      CAD: "CA$",
-      KES: "KSh"
-    };
+    const candidateRefs = Array.from(
+      new Set(
+        [args.reference, args.externalId]
+          .filter((r): r is string => typeof r === "string" && r.trim().length > 0)
+          .map((r) => r.trim())
+      )
+    );
 
-    // 2. Check if reference matches a sponsorship's paymentReference
-    const sponsorship = await ctx.db
-      .query("sponsorships")
-      .filter((q) => q.eq(q.field("paymentReference"), args.reference))
-      .first();
+    // 1. Check if any candidate reference matches an application
+    for (const ref of candidateRefs) {
+      let application = await ctx.db
+        .query("applications")
+        .filter((q) => q.eq(q.field("paymentReference"), ref))
+        .first();
 
-    if (sponsorship) {
-      const status = isSuccess ? "success" : isFailed ? "failed" : "pending";
-      await ctx.db.patch(sponsorship._id, { status });
-
-      const symbol = currencySymbols[sponsorship.currency || "GHS"] || (sponsorship.currency || "GH₵");
-      const amountDisplay = symbol + " " + sponsorship.amount.toLocaleString(undefined, {
-        minimumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(sponsorship.currency || "GHS") ? 2 : 0,
-        maximumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(sponsorship.currency || "GHS") ? 2 : 0,
-      });
-
-      if (isSuccess) {
-        await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipPaymentSuccess, {
-          email: sponsorship.email,
-          name: sponsorship.name,
-          amountDisplay,
-          currency: sponsorship.currency,
-          paymentReference: args.reference,
-          organization: sponsorship.organization,
-        });
-      } else if (isFailed) {
-        const settings = await ctx.db.query("globalSettings").first();
-        await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipConfirmation, {
-          email: sponsorship.email,
-          name: sponsorship.name,
-          amountDisplay,
-          bankAccountName: settings?.bankAccountName || "Women of Influence",
-          bankAccountNumber: settings?.bankAccountNumber || "N/A",
-          bankName: settings?.bankName || "N/A",
-          usdBankAccountName: settings?.usdBankAccountName,
-          usdBankAccountNumber: settings?.usdBankAccountNumber,
-          usdBankName: settings?.usdBankName,
-          usdRoutingNumber: settings?.usdRoutingNumber,
-          usdSwiftCode: settings?.usdSwiftCode,
-          eurBankAccountName: settings?.eurBankAccountName,
-          eurIban: settings?.eurIban,
-          eurBankName: settings?.eurBankName,
-          eurSwiftCode: settings?.eurSwiftCode,
-          isBackup: true,
-        });
-      }
-
-      return { type: "sponsorship", id: sponsorship._id, status };
-    }
-
-    // 3. Check if reference is a direct document ID
-    try {
-      // Check if reference is a valid ID for applications
-      const appId = ctx.db.normalizeId("applications", args.reference);
-      if (appId) {
-        const appById = await ctx.db.get(appId);
-        if (appById) {
-          const paymentStatus = isSuccess ? "success" : isFailed ? "failed" : "pending";
-          await ctx.db.patch(appById._id, { paymentStatus });
-          return { type: "application", id: appById._id, status: paymentStatus };
-        }
-      }
-
-      // Check if reference is a valid ID for sponsorships
-      const sponId = ctx.db.normalizeId("sponsorships", args.reference);
-      if (sponId) {
-        const sponById = await ctx.db.get(sponId);
-        if (sponById) {
-          const status = isSuccess ? "success" : isFailed ? "failed" : "pending";
-          await ctx.db.patch(sponById._id, { status });
-
-          const symbol = currencySymbols[sponById.currency || "GHS"] || (sponById.currency || "GH₵");
-          const amountDisplay = symbol + " " + sponById.amount.toLocaleString(undefined, {
-            minimumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(sponById.currency || "GHS") ? 2 : 0,
-            maximumFractionDigits: ["USD", "GBP", "EUR", "CAD"].includes(sponById.currency || "GHS") ? 2 : 0,
-          });
-
-          if (isSuccess) {
-            await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipPaymentSuccess, {
-              email: sponById.email,
-              name: sponById.name,
-              amountDisplay,
-              currency: sponById.currency,
-              paymentReference: args.reference,
-              organization: sponById.organization,
-            });
-          } else if (isFailed) {
-            const settings = await ctx.db.query("globalSettings").first();
-            await ctx.scheduler.runAfter(0, api.emails.sendSponsorshipConfirmation, {
-              email: sponById.email,
-              name: sponById.name,
-              amountDisplay,
-              bankAccountName: settings?.bankAccountName || "Women of Influence",
-              bankAccountNumber: settings?.bankAccountNumber || "N/A",
-              bankName: settings?.bankName || "N/A",
-              usdBankAccountName: settings?.usdBankAccountName,
-              usdBankAccountNumber: settings?.usdBankAccountNumber,
-              usdBankName: settings?.usdBankName,
-              usdRoutingNumber: settings?.usdRoutingNumber,
-              usdSwiftCode: settings?.usdSwiftCode,
-              eurBankAccountName: settings?.eurBankAccountName,
-              eurIban: settings?.eurIban,
-              eurBankName: settings?.eurBankName,
-              eurSwiftCode: settings?.eurSwiftCode,
-              isBackup: true,
-            });
+      if (!application) {
+        try {
+          const appId = ctx.db.normalizeId("applications", ref);
+          if (appId) {
+            application = await ctx.db.get(appId);
           }
-
-          return { type: "sponsorship", id: sponById._id, status };
+        } catch {
+          // Not a valid applications document ID
         }
       }
-    } catch (e) {
-      // Reference was not a valid document ID format
+
+      if (application) {
+        const paymentStatus =
+          application.paymentStatus === "success" && !isFailed
+            ? "success"
+            : isSuccess
+              ? "success"
+              : isFailed
+                ? "failed"
+                : "pending";
+        await ctx.db.patch(application._id, { paymentStatus });
+        return { type: "application", id: application._id, status: paymentStatus };
+      }
+    }
+
+    // 2. Check if any candidate reference matches a sponsorship
+    for (const ref of candidateRefs) {
+      let sponsorship = await ctx.db
+        .query("sponsorships")
+        .filter((q) => q.eq(q.field("paymentReference"), ref))
+        .first();
+
+      if (!sponsorship) {
+        try {
+          const sponId = ctx.db.normalizeId("sponsorships", ref);
+          if (sponId) {
+            sponsorship = await ctx.db.get(sponId);
+          }
+        } catch {
+          // Not a valid sponsorships document ID
+        }
+      }
+
+      if (sponsorship) {
+        const previousStatus = sponsorship.status;
+        const status =
+          previousStatus === "success" && !isFailed
+            ? "success"
+            : isSuccess
+              ? "success"
+              : isFailed
+                ? "failed"
+                : "pending";
+        await ctx.db.patch(sponsorship._id, {
+          status,
+          ...(args.externalId && !sponsorship.paymentReference
+            ? { paymentReference: args.externalId }
+            : {}),
+        });
+
+        if (isSuccess && previousStatus !== "success") {
+          await scheduleSponsorshipPaymentSuccessEmail(
+            ctx,
+            sponsorship,
+            args.externalId || args.reference
+          );
+        } else if (isFailed && previousStatus !== "failed") {
+          await scheduleSponsorshipBankDetailsEmail(ctx, sponsorship, true);
+        }
+
+        return { type: "sponsorship", id: sponsorship._id, status };
+      }
     }
 
     return { type: "not_found" };

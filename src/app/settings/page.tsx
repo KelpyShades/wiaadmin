@@ -5,7 +5,6 @@ import { useMutation } from "convex/react";
 import { useUploadFile } from "@convex-dev/r2/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,6 +44,7 @@ import Image from "next/image";
 const settingsSchema = z.object({
   heroQuote: z.string().min(5, "Hero quote must be at least 5 characters"),
   heroQuoteAuthor: z.string().min(2, "Author is required"),
+  cohortName: z.string().trim().min(2, "Cohort name is required"),
   seatsAvailable: z.number().min(1, "Must allow at least 1 seat"),
   deadlineDate: z.string().min(2, "Deadline date is required"),
   startDate: z.string().min(2, "Start date is required"),
@@ -95,6 +95,7 @@ export default function SettingsPage() {
     defaultValues: {
       heroQuote: "",
       heroQuoteAuthor: "",
+      cohortName: "Cohort Pearl",
       seatsAvailable: 5,
       deadlineDate: "",
       startDate: "",
@@ -136,6 +137,7 @@ export default function SettingsPage() {
       form.reset({
         heroQuote: settings.heroQuote,
         heroQuoteAuthor: settings.heroQuoteAuthor,
+        cohortName: settings.cohortName || "Cohort Pearl",
         seatsAvailable: settings.seatsAvailable,
         deadlineDate: settings.deadlineDate,
         startDate: settings.startDate,
@@ -298,10 +300,12 @@ export default function SettingsPage() {
                   <CardContent className="space-y-4">
                     <div className="flex flex-col items-center justify-center p-4 border border-dashed rounded-lg border-zinc-200 bg-zinc-50/50">
                       {settings.imageUrl ? (
-                        <div className="aspect-3/4 w-full max-w-40 overflow-hidden rounded-lg border border-zinc-200 shadow-sm mb-4">
+                        <div className="relative aspect-3/4 w-full max-w-40 overflow-hidden rounded-lg border border-zinc-200 shadow-sm mb-4">
                           <Image
                             src={settings.imageUrl}
                             alt="Current Hero"
+                            fill
+                            sizes="160px"
                             className="h-full w-full object-cover"
                           />
                         </div>
@@ -329,6 +333,36 @@ export default function SettingsPage() {
 
             {/* TAB: COHORT DETAILS */}
             <TabsContent value="cohort" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cohort Name</CardTitle>
+                  <CardDescription>
+                    Set the academy&apos;s current cohort name. Updating this
+                    changes the cohort name everywhere it appears on the
+                    website.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={form.control}
+                    name="cohortName"
+                    render={({ field }) => (
+                      <FormItem className="max-w-md">
+                        <FormLabel>Academy Cohort Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. Cohort Pearl" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Displayed on the homepage announcement banner and the
+                          application page.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
               <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                   <CardHeader>

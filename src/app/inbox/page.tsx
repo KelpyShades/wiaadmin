@@ -24,6 +24,43 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  GHS: "GH₵",
+  USD: "$",
+  NGN: "₦",
+  GBP: "£",
+  EUR: "€",
+  CAD: "CA$",
+  KES: "KSh",
+  ZAR: "R",
+  EGP: "E£",
+  MAD: "DH",
+  DZD: "DA",
+  TND: "DT",
+  BWP: "P",
+  RWF: "FRw",
+  UGX: "USh",
+  ZMW: "ZK",
+  MZN: "MT",
+  ETB: "Br",
+  MUR: "₨",
+  TZS: "TSh",
+  XOF: "CFA",
+  XAF: "FCFA",
+  ZWG: "ZiG",
+};
+
+function formatCurrencyAmount(amount: number, currency?: string): string {
+  const code = (currency || "GHS").toUpperCase();
+  const symbol = CURRENCY_SYMBOLS[code] || code;
+  const hasDecimals = ["USD", "GBP", "EUR", "CAD"].includes(code);
+  const formatted = amount.toLocaleString("en-US", {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: hasDecimals ? 2 : 0,
+  });
+  return `${symbol} ${formatted}`;
+}
+
 interface ApplicationRecord {
   _id: Id<"applications">;
   fullName: string;
@@ -36,6 +73,7 @@ interface ApplicationRecord {
   vision: string;
   referral?: string;
   amount: number;
+  currency?: string;
   paymentReference?: string;
   paymentStatus: "pending" | "success" | "failed";
 }
@@ -55,6 +93,8 @@ interface SponsorshipRecord {
   email: string;
   organization?: string;
   amount: number;
+  currency?: string;
+  paymentReference?: string;
   status: string;
   _creationTime: number;
 }
@@ -129,7 +169,12 @@ export default function InboxPage() {
                       <TableCell className="font-medium">{app.fullName}</TableCell>
                       <TableCell>{app.email}</TableCell>
                       <TableCell className="text-xs max-w-37.5 truncate">{app.packageName}</TableCell>
-                      <TableCell>GH₵ {app.amount}</TableCell>
+                      <TableCell>
+                        {formatCurrencyAmount(app.amount, app.currency)}{" "}
+                        <span className="text-xs text-zinc-400">
+                          {(app.currency || "GHS").toUpperCase()}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                           app.paymentStatus === 'success' ? 'bg-green-50 text-green-700 ring-green-600/20' :
@@ -199,7 +244,7 @@ export default function InboxPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Amount (GH₵)</TableHead>
+                  <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -222,10 +267,16 @@ export default function InboxPage() {
                       </TableCell>
                       <TableCell className="font-medium">{spon.name}</TableCell>
                       <TableCell>{spon.email}</TableCell>
-                      <TableCell>{spon.amount}</TableCell>
+                      <TableCell>
+                        {formatCurrencyAmount(spon.amount, spon.currency)}{" "}
+                        <span className="text-xs text-zinc-400">
+                          {(spon.currency || "GHS").toUpperCase()}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                           spon.status === 'success' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                          spon.status === 'failed' ? 'bg-red-50 text-red-700 ring-red-600/20' :
                           'bg-amber-50 text-amber-700 ring-amber-600/20'
                         }`}>
                           {spon.status}
@@ -318,7 +369,12 @@ export default function InboxPage() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-zinc-500 block text-xs uppercase">Amount</span>
-                    <span className="font-semibold text-zinc-900">GH₵ {selectedApp.amount}</span>
+                    <span className="font-semibold text-zinc-900">
+                      {formatCurrencyAmount(selectedApp.amount, selectedApp.currency)}{" "}
+                      <span className="text-xs font-normal text-zinc-500">
+                        ({(selectedApp.currency || "GHS").toUpperCase()})
+                      </span>
+                    </span>
                   </div>
                   <div>
                     <span className="text-zinc-500 block text-xs uppercase">Status</span>
@@ -350,10 +406,8 @@ export default function InboxPage() {
                   className="px-3"
                   title="Delete Application"
                   onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this application?")) {
-                      deleteApp({ id: selectedApp._id });
-                      setSelectedApp(null);
-                    }
+                    void deleteApp({ id: selectedApp._id });
+                    setSelectedApp(null);
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -410,10 +464,8 @@ export default function InboxPage() {
                   className="px-3"
                   title="Delete Partnership"
                   onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this partnership?")) {
-                      deletePart({ id: selectedPart._id });
-                      setSelectedPart(null);
-                    }
+                    void deletePart({ id: selectedPart._id });
+                    setSelectedPart(null);
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -449,12 +501,18 @@ export default function InboxPage() {
               </div>
               <div>
                 <h3 className="text-sm font-medium text-zinc-500">Amount Pledged</h3>
-                <p className="mt-1 text-xl font-medium text-zinc-900">GH₵ {selectedSponsorship.amount}</p>
+                <p className="mt-1 text-xl font-medium text-zinc-900">
+                  {formatCurrencyAmount(selectedSponsorship.amount, selectedSponsorship.currency)}{" "}
+                  <span className="text-sm font-normal text-zinc-500">
+                    ({(selectedSponsorship.currency || "GHS").toUpperCase()})
+                  </span>
+                </p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-zinc-500">Current Status</h3>
                 <span className={`mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
                   selectedSponsorship.status === 'success' ? 'bg-green-50 text-green-700 ring-green-600/20' :
+                  selectedSponsorship.status === 'failed' ? 'bg-red-50 text-red-700 ring-red-600/20' :
                   'bg-amber-50 text-amber-700 ring-amber-600/20'
                 }`}>
                   {selectedSponsorship.status}
@@ -478,10 +536,8 @@ export default function InboxPage() {
                   className="px-3"
                   title="Delete Sponsorship"
                   onClick={() => {
-                    if (window.confirm("Are you sure you want to delete this sponsorship?")) {
-                      deleteSponsorship({ id: selectedSponsorship._id });
-                      setSelectedSponsorship(null);
-                    }
+                    void deleteSponsorship({ id: selectedSponsorship._id });
+                    setSelectedSponsorship(null);
                   }}
                 >
                   <Trash2 className="h-4 w-4" />

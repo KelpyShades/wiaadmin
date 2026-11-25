@@ -265,7 +265,7 @@ export default function BusinessesPage() {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-106.25">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Business" : "Add Business"}</DialogTitle>
             <DialogDescription>
@@ -310,7 +310,11 @@ export default function BusinessesPage() {
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Describe the business impact, size, and services..." {...field} />
+                      <Textarea
+                        placeholder="Describe the business impact, size, and services..."
+                        className="max-h-40 overflow-y-auto"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

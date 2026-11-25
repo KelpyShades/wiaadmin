@@ -27,11 +27,6 @@ export const initFirstAdmin = mutation({
 export const hasAdmins = query({
   args: {},
   handler: async (ctx) => {
-    const adminRoles = await ctx.db
-      .query("userRoles")
-      .filter((q) => q.eq(q.field("role"), "admin"))
-      .collect();
-      
     const users = await ctx.db.query("users").take(1);
     return users.length > 0;
   },

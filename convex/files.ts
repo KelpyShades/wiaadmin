@@ -1,9 +1,8 @@
 import { R2 } from "@convex-dev/r2";
-import { components } from "./_generated/api";
-import { query, mutation, action, internalMutation, internalQuery } from "./_generated/server";
+import { components, api } from "./_generated/api";
+import { query, mutation, action, QueryCtx, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
-import type { DataModel } from "./_generated/dataModel";
-import { api } from "./_generated/api";
+import type { DataModel, Id } from "./_generated/dataModel";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export const r2 = new R2(components.r2);
@@ -18,7 +17,7 @@ export const { generateUploadUrl, syncMetadata } = r2.clientApi<DataModel>({
  * Resolves a public URL or signed URL for a file key or storage ID.
  */
 export async function resolveMediaUrl(
-  ctx: { storage: { getUrl: (id: any) => Promise<string | null> } },
+  ctx: Pick<QueryCtx | MutationCtx, "storage">,
   idOrKey: string | null | undefined
 ): Promise<string | null> {
   if (!idOrKey) return null;
@@ -43,7 +42,7 @@ export async function resolveMediaUrl(
 
   // Fallback to Convex native storage
   try {
-    return await ctx.storage.getUrl(idOrKey as any);
+    return await ctx.storage.getUrl(idOrKey as Id<"_storage">);
   } catch {
     return null;
   }
@@ -53,7 +52,7 @@ export async function resolveMediaUrl(
  * Deletes a file from R2 or fallback Convex storage.
  */
 export async function deleteMediaFile(
-  ctx: any,
+  ctx: MutationCtx,
   idOrKey: string | null | undefined
 ) {
   if (!idOrKey || idOrKey.startsWith("http://") || idOrKey.startsWith("https://")) {
@@ -70,7 +69,7 @@ export async function deleteMediaFile(
   }
 
   try {
-    await ctx.storage.delete(idOrKey as any);
+    await ctx.storage.delete(idOrKey as Id<"_storage">);
   } catch (e) {
     console.warn("Failed to delete from Convex storage:", idOrKey, e);
   }
@@ -121,18 +120,76 @@ export const getAllStorageFiles = query({
 export const getStorageUrl = query({
   args: { storageId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.storage.getUrl(args.storageId as any);
+    return await ctx.storage.getUrl(args.storageId as Id<"_storage">);
   },
 });
 
 export const patchMigratedRecord = mutation({
   args: {
-    table: v.string(),
+    table: v.union(
+      v.literal("gallery"),
+      v.literal("executives"),
+      v.literal("testimonials"),
+      v.literal("businesses"),
+      v.literal("licenses"),
+      v.literal("globalSettings")
+    ),
     id: v.string(),
-    patch: v.any(),
+    patch: v.object({
+      fileId: v.optional(v.string()),
+      imageId: v.optional(v.string()),
+      videoId: v.optional(v.string()),
+      heroImageId: v.optional(v.string()),
+    }),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.id as any, args.patch);
+    switch (args.table) {
+      case "gallery": {
+        const docId = ctx.db.normalizeId("gallery", args.id);
+        if (docId && args.patch.fileId !== undefined) {
+          await ctx.db.patch(docId, { fileId: args.patch.fileId });
+        }
+        break;
+      }
+      case "executives": {
+        const docId = ctx.db.normalizeId("executives", args.id);
+        if (docId && args.patch.imageId !== undefined) {
+          await ctx.db.patch(docId, { imageId: args.patch.imageId });
+        }
+        break;
+      }
+      case "testimonials": {
+        const docId = ctx.db.normalizeId("testimonials", args.id);
+        if (docId) {
+          const updates: { imageId?: string; videoId?: string } = {};
+          if (args.patch.imageId !== undefined) updates.imageId = args.patch.imageId;
+          if (args.patch.videoId !== undefined) updates.videoId = args.patch.videoId;
+          await ctx.db.patch(docId, updates);
+        }
+        break;
+      }
+      case "businesses": {
+        const docId = ctx.db.normalizeId("businesses", args.id);
+        if (docId && args.patch.imageId !== undefined) {
+          await ctx.db.patch(docId, { imageId: args.patch.imageId });
+        }
+        break;
+      }
+      case "licenses": {
+        const docId = ctx.db.normalizeId("licenses", args.id);
+        if (docId && args.patch.imageId !== undefined) {
+          await ctx.db.patch(docId, { imageId: args.patch.imageId });
+        }
+        break;
+      }
+      case "globalSettings": {
+        const docId = ctx.db.normalizeId("globalSettings", args.id);
+        if (docId && args.patch.heroImageId !== undefined) {
+          await ctx.db.patch(docId, { heroImageId: args.patch.heroImageId });
+        }
+        break;
+      }
+    }
   },
 });
 
@@ -241,7 +298,7 @@ export const migrateToR2 = action({
 
     // 3. Testimonials
     for (const test of data.testimonials) {
-      const patch: any = {};
+      const patch: { imageId?: string; videoId?: string } = {};
       if (test.imageId && test.imageId.startsWith("kg2")) {
         patch.imageId = await uploadFileToR2(test.imageId, "testimonials");
       }
