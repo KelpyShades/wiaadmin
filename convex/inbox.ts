@@ -29,14 +29,36 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   ZWG: "ZiG",
 };
 
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  "GHS", "NGN", "KES", "UGX", "RWF", "TZS", "XOF", "XAF", "BIF", "CLP",
+  "DJF", "GNF", "IDR", "JPY", "KMF", "KRW", "MGA", "PYG", "VND", "VUV",
+  "XPF", "SLE", "LRD", "MWK", "CDF", "SOS",
+]);
+
+function getCurrencySymbol(code: string): string {
+  if (CURRENCY_SYMBOLS[code]) return CURRENCY_SYMBOLS[code];
+  try {
+    const parts = new Intl.NumberFormat("en", {
+      style: "currency",
+      currency: code,
+      currencyDisplay: "narrowSymbol",
+    }).formatToParts(0);
+    const sym = parts.find((p) => p.type === "currency")?.value;
+    if (sym) return sym;
+  } catch {
+    // Fallback to currency code
+  }
+  return code;
+}
+
 function formatSponsorshipAmount(amount: number, currency?: string): string {
   const code = (currency || "GHS").toUpperCase();
-  const symbol = CURRENCY_SYMBOLS[code] || code;
-  const hasDecimals = ["USD", "GBP", "EUR", "CAD"].includes(code);
+  const symbol = getCurrencySymbol(code);
+  const hasDecimals = !ZERO_DECIMAL_CURRENCIES.has(code);
   return (
     symbol +
     " " +
-    amount.toLocaleString(undefined, {
+    amount.toLocaleString("en-US", {
       minimumFractionDigits: hasDecimals ? 2 : 0,
       maximumFractionDigits: hasDecimals ? 2 : 0,
     })
