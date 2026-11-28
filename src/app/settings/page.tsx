@@ -66,9 +66,9 @@ const settingsSchema = z.object({
   fullExpInstallment1Month: z.string().min(1, "Month is required"),
   fullExpInstallment2Amount: z.number().min(0, "Must be positive number"),
   fullExpInstallment2Month: z.string().min(1, "Month is required"),
-  bankAccountName: z.string().min(1, "Required"),
-  bankAccountNumber: z.string().min(1, "Required"),
-  bankName: z.string().min(1, "Required"),
+  bankAccountName: z.string(),
+  bankAccountNumber: z.string(),
+  bankName: z.string(),
   usdBankAccountName: z.string().optional(),
   usdBankAccountNumber: z.string().optional(),
   usdBankName: z.string().optional(),
@@ -89,6 +89,10 @@ export default function SettingsPage() {
 
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(settingsSchema),
@@ -181,6 +185,7 @@ export default function SettingsPage() {
 
   const onSubmit = async (values: FormValues) => {
     setIsSaving(true);
+    setSaveFeedback(null);
     try {
       let heroImageId: string | undefined = undefined;
 
@@ -196,10 +201,20 @@ export default function SettingsPage() {
       });
 
       setSelectedImage(null);
-      alert("Successfully updated Global Settings!");
+      setSaveFeedback({
+        type: "success",
+        message: "Settings saved.",
+      });
     } catch (error) {
       console.error("Save failed", error);
-      alert("Failed to save settings.");
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to save settings.";
+      setSaveFeedback({
+        type: "error",
+        message,
+      });
     } finally {
       setIsSaving(false);
     }
@@ -208,11 +223,12 @@ export default function SettingsPage() {
   const onInvalid = (errors: FieldErrors<FormValues>) => {
     const firstKey = Object.keys(errors)[0] as keyof FormValues | undefined;
     const firstMsg = firstKey ? errors[firstKey]?.message : undefined;
-    alert(
-      firstKey
-        ? `Please fix "${firstKey}"${firstMsg ? `: ${String(firstMsg)}` : ""} (check the other settings tabs if not visible).`
-        : "Please check all settings tabs for required fields."
-    );
+    setSaveFeedback({
+      type: "error",
+      message: firstKey
+        ? `Please check "${firstKey}"${firstMsg ? `: ${String(firstMsg)}` : ""} (it may be on another tab).`
+        : "Please check all settings tabs for required fields.",
+    });
   };
 
   if (settings === undefined) {
@@ -253,7 +269,7 @@ export default function SettingsPage() {
             </TabsList>
 
             {/* TAB: HERO SECTION */}
-            <TabsContent value="hero" className="space-y-6">
+            <TabsContent value="hero" keepMounted className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                   <CardHeader>
@@ -342,7 +358,7 @@ export default function SettingsPage() {
             </TabsContent>
 
             {/* TAB: COHORT DETAILS */}
-            <TabsContent value="cohort" className="space-y-6">
+            <TabsContent value="cohort" keepMounted className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Cohort Name</CardTitle>
@@ -539,7 +555,7 @@ export default function SettingsPage() {
             </TabsContent>
 
             {/* TAB: PRICING & INSTALLMENTS */}
-            <TabsContent value="pricing" className="space-y-6">
+            <TabsContent value="pricing" keepMounted className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2">
                 {/* FOUNDATION PACK */}
                 <Card>
@@ -812,7 +828,7 @@ export default function SettingsPage() {
             </TabsContent>
 
             {/* TAB: BANK DETAILS */}
-            <TabsContent value="bank" className="space-y-6">
+            <TabsContent value="bank" keepMounted className="space-y-6">
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {/* Local African Account */}
                 <Card className="border border-emerald-100 shadow-sm">
@@ -1042,20 +1058,33 @@ export default function SettingsPage() {
             </TabsContent>
           </Tabs>
 
-          <Button
-            type="submit"
-            disabled={isSaving}
-            className="w-full md:w-auto px-8"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving
-                Settings...
-              </>
-            ) : (
-              "Save Settings"
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="w-full md:w-auto px-8"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving
+                  Settings...
+                </>
+              ) : (
+                "Save Settings"
+              )}
+            </Button>
+            {saveFeedback && (
+              <p
+                className={`text-sm ${
+                  saveFeedback.type === "error"
+                    ? "text-red-600"
+                    : "text-emerald-600"
+                }`}
+              >
+                {saveFeedback.message}
+              </p>
             )}
-          </Button>
+          </div>
         </form>
       </Form>
     </div>

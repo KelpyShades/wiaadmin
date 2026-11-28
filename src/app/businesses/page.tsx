@@ -140,8 +140,7 @@ export default function BusinessesPage() {
       setSelectedImage(null);
       setEditingId(null);
     } catch (err) {
-      console.error(err);
-      alert("Failed to save business");
+      console.error("Failed to save business:", err);
     } finally {
       setIsSaving(false);
     }
@@ -153,8 +152,7 @@ export default function BusinessesPage() {
       await deleteBusiness({ id: confirmState.businessId });
       setConfirmState({ isOpen: false, businessId: null });
     } catch (err) {
-      console.error(err);
-      alert("Failed to delete business");
+      console.error("Failed to delete business:", err);
     }
   };
 

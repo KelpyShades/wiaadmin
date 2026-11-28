@@ -116,8 +116,7 @@ export default function ResourcesPage() {
       setIsCategoryOpen(false);
       categoryForm.reset();
     } catch (err) {
-      console.error(err);
-      alert("Failed to add category");
+      console.error("Failed to add category:", err);
     } finally {
       setIsSaving(false);
     }
@@ -135,8 +134,7 @@ export default function ResourcesPage() {
       setIsResourceOpen(false);
       resourceForm.reset();
     } catch (err) {
-      console.error(err);
-      alert("Failed to add resource");
+      console.error("Failed to add resource:", err);
     } finally {
       setIsSaving(false);
     }
@@ -148,8 +146,7 @@ export default function ResourcesPage() {
       await deleteCategory({ id: confirmCatState.catId });
       setConfirmCatState({ isOpen: false, catId: null });
     } catch (err) {
-      console.error(err);
-      alert("Failed to delete category");
+      console.error("Failed to delete category:", err);
     }
   };
 
@@ -159,8 +156,7 @@ export default function ResourcesPage() {
       await deleteResource({ id: confirmResState.resId });
       setConfirmResState({ isOpen: false, resId: null });
     } catch (err) {
-      console.error(err);
-      alert("Failed to delete resource");
+      console.error("Failed to delete resource:", err);
     }
   };
 

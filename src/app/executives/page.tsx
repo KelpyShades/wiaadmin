@@ -140,8 +140,7 @@ export default function ExecutivesPage() {
       setSelectedImage(null);
       setEditingId(null);
     } catch (err) {
-      console.error(err);
-      alert("Failed to save executive");
+      console.error("Failed to save executive:", err);
     } finally {
       setIsSaving(false);
     }
@@ -153,8 +152,7 @@ export default function ExecutivesPage() {
       await removeExecutive({ id: confirmState.executiveId });
       setConfirmState({ isOpen: false, executiveId: null });
     } catch (err) {
-      console.error(err);
-      alert("Failed to delete executive");
+      console.error("Failed to delete executive:", err);
     }
   };
 

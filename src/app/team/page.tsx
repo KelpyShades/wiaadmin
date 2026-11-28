@@ -118,8 +118,7 @@ export default function TeamPage() {
         try {
           await removeAdmin({ roleId });
         } catch (err) {
-          const error = err as Error;
-          alert(error.message || "Failed to remove admin.");
+          console.error("Failed to remove admin:", err);
         }
       }
     });

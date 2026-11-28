@@ -101,7 +101,6 @@ export default function GalleryPage() {
 
   const onSubmit = async (values: FormValues) => {
     if (!selectedFile) {
-      alert("Please select a file to upload.");
       return;
     }
 

@@ -175,8 +175,7 @@ export default function LicensesPage() {
       setSelectedImage(null);
       setEditingId(null);
     } catch (err) {
-      console.error(err);
-      alert("Failed to save license");
+      console.error("Failed to save license:", err);
     } finally {
       setIsSaving(false);
     }
@@ -188,8 +187,7 @@ export default function LicensesPage() {
       await deleteLicense({ id: confirmState.licenseId });
       setConfirmState({ isOpen: false, licenseId: null });
     } catch (err) {
-      console.error(err);
-      alert("Failed to delete license");
+      console.error("Failed to delete license:", err);
     }
   };
 
