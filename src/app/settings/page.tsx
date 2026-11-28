@@ -6,7 +6,7 @@ import { useUploadFile } from "@convex-dev/r2/react";
 import { useQuery } from "convex-helpers/react/cache/hooks";
 import { api } from "../../../convex/_generated/api";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Loader2,
@@ -205,6 +205,16 @@ export default function SettingsPage() {
     }
   };
 
+  const onInvalid = (errors: FieldErrors<FormValues>) => {
+    const firstKey = Object.keys(errors)[0] as keyof FormValues | undefined;
+    const firstMsg = firstKey ? errors[firstKey]?.message : undefined;
+    alert(
+      firstKey
+        ? `Please fix "${firstKey}"${firstMsg ? `: ${String(firstMsg)}` : ""} (check the other settings tabs if not visible).`
+        : "Please check all settings tabs for required fields."
+    );
+  };
+
   if (settings === undefined) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -225,7 +235,7 @@ export default function SettingsPage() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
           <Tabs defaultValue="hero" className="w-full">
             <TabsList className="mb-4">
               <TabsTrigger value="hero" className="flex items-center gap-2">
