@@ -86,6 +86,14 @@ export default defineSchema({
     eurIban: v.optional(v.string()),
     eurBankName: v.optional(v.string()),
     eurSwiftCode: v.optional(v.string()),
+
+    // GBP (Pound) Bank Details for Sponsorships
+    gbpBankAccountName: v.optional(v.string()),
+    gbpBankAccountNumber: v.optional(v.string()),
+    gbpSortCode: v.optional(v.string()),
+    gbpIban: v.optional(v.string()),
+    gbpBankName: v.optional(v.string()),
+    gbpSwiftCode: v.optional(v.string()),
   }),
 
   // Testimonials & Success Stories

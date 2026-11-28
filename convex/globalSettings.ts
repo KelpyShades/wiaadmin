@@ -45,6 +45,12 @@ export const getGlobalSettings = query({
       eurIban: "N/A",
       eurBankName: "N/A",
       eurSwiftCode: "N/A",
+      gbpBankAccountName: "Women of Influence (GBP)",
+      gbpBankAccountNumber: "N/A",
+      gbpSortCode: "N/A",
+      gbpIban: "N/A",
+      gbpBankName: "N/A",
+      gbpSwiftCode: "N/A",
       heroImageId: undefined,
       imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
     };
@@ -106,6 +112,12 @@ export const updateGlobalSettings = mutation({
     eurIban: v.optional(v.string()),
     eurBankName: v.optional(v.string()),
     eurSwiftCode: v.optional(v.string()),
+    gbpBankAccountName: v.optional(v.string()),
+    gbpBankAccountNumber: v.optional(v.string()),
+    gbpSortCode: v.optional(v.string()),
+    gbpIban: v.optional(v.string()),
+    gbpBankName: v.optional(v.string()),
+    gbpSwiftCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("globalSettings").first();

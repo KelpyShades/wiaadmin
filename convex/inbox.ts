@@ -100,6 +100,12 @@ async function scheduleSponsorshipBankDetailsEmail(
     eurIban: settings?.eurIban,
     eurBankName: settings?.eurBankName,
     eurSwiftCode: settings?.eurSwiftCode,
+    gbpBankAccountName: settings?.gbpBankAccountName,
+    gbpBankAccountNumber: settings?.gbpBankAccountNumber,
+    gbpSortCode: settings?.gbpSortCode,
+    gbpIban: settings?.gbpIban,
+    gbpBankName: settings?.gbpBankName,
+    gbpSwiftCode: settings?.gbpSwiftCode,
     isBackup,
   });
 }

@@ -17,6 +17,7 @@ import {
   Landmark,
   Globe,
   Coins,
+  PoundSterling,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,12 @@ const settingsSchema = z.object({
   eurIban: z.string().optional(),
   eurBankName: z.string().optional(),
   eurSwiftCode: z.string().optional(),
+  gbpBankAccountName: z.string().optional(),
+  gbpBankAccountNumber: z.string().optional(),
+  gbpSortCode: z.string().optional(),
+  gbpIban: z.string().optional(),
+  gbpBankName: z.string().optional(),
+  gbpSwiftCode: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof settingsSchema>;
@@ -133,6 +140,12 @@ export default function SettingsPage() {
       eurIban: "",
       eurBankName: "",
       eurSwiftCode: "",
+      gbpBankAccountName: "",
+      gbpBankAccountNumber: "",
+      gbpSortCode: "",
+      gbpIban: "",
+      gbpBankName: "",
+      gbpSwiftCode: "",
     },
   });
 
@@ -175,6 +188,12 @@ export default function SettingsPage() {
         eurIban: settings.eurIban || "",
         eurBankName: settings.eurBankName || "",
         eurSwiftCode: settings.eurSwiftCode || "",
+        gbpBankAccountName: settings.gbpBankAccountName || "",
+        gbpBankAccountNumber: settings.gbpBankAccountNumber || "",
+        gbpSortCode: settings.gbpSortCode || "",
+        gbpIban: settings.gbpIban || "",
+        gbpBankName: settings.gbpBankName || "",
+        gbpSwiftCode: settings.gbpSwiftCode || "",
       });
     }
   }, [settings, form]);
@@ -829,7 +848,7 @@ export default function SettingsPage() {
 
             {/* TAB: BANK DETAILS */}
             <TabsContent value="bank" keepMounted className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2">
                 {/* Local African Account */}
                 <Card className="border border-emerald-100 shadow-sm">
                   <CardHeader className="bg-emerald-50/50 pb-4">
@@ -1047,6 +1066,107 @@ export default function SettingsPage() {
                           <FormLabel>SWIFT / BIC Code</FormLabel>
                           <FormControl>
                             <Input placeholder="ABCBEE22XXX" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* GBP (Pound) Account */}
+                <Card className="border border-amber-100 shadow-sm">
+                  <CardHeader className="bg-amber-50/50 pb-4">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-amber-800 flex items-center gap-2">
+                        <PoundSterling className="h-5 w-5 text-amber-600" />
+                        GBP Account (Pound)
+                      </CardTitle>
+                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+                        GBP Currency
+                      </span>
+                    </div>
+                    <CardDescription>
+                      Pound sterling account details for UK and international GBP transfers.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 pt-5">
+                    <FormField
+                      control={form.control}
+                      name="gbpBankAccountName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Women of Influence Academy (GBP)"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="gbpBankAccountNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="12345678" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="gbpSortCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sort Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="04-00-75" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="gbpIban"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>IBAN (Optional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="GB29NWBK60161331926819" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="gbpBankName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bank Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Barclays / Accrue UK" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="gbpSwiftCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>SWIFT / BIC Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="BARCGB22XXX" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
