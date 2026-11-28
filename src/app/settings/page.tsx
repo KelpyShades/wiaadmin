@@ -848,7 +848,7 @@ export default function SettingsPage() {
 
             {/* TAB: BANK DETAILS */}
             <TabsContent value="bank" keepMounted className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="flex flex-col gap-6">
                 {/* Local African Account */}
                 <Card className="border border-emerald-100 shadow-sm">
                   <CardHeader className="bg-emerald-50/50 pb-4">
@@ -865,7 +865,7 @@ export default function SettingsPage() {
                       Default bank details for GHS and other African transfers.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 pt-5">
+                  <CardContent className="grid gap-4 pt-5 md:grid-cols-3">
                     <FormField
                       control={form.control}
                       name="bankAccountName"
@@ -927,7 +927,7 @@ export default function SettingsPage() {
                       USD account details for international sponsors outside Africa.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 pt-5">
+                  <CardContent className="grid gap-4 pt-5 md:grid-cols-2 lg:grid-cols-3">
                     <FormField
                       control={form.control}
                       name="usdBankAccountName"
@@ -1015,7 +1015,7 @@ export default function SettingsPage() {
                       EUR account details for international sponsors outside Africa.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 pt-5">
+                  <CardContent className="grid gap-4 pt-5 md:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="eurBankAccountName"
@@ -1090,7 +1090,7 @@ export default function SettingsPage() {
                       Pound sterling account details for UK and international GBP transfers.
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4 pt-5">
+                  <CardContent className="grid gap-4 pt-5 md:grid-cols-2 lg:grid-cols-3">
                     <FormField
                       control={form.control}
                       name="gbpBankAccountName"
