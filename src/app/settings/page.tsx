@@ -1075,11 +1075,10 @@ export default function SettingsPage() {
             </Button>
             {saveFeedback && (
               <p
-                className={`text-sm ${
-                  saveFeedback.type === "error"
-                    ? "text-red-600"
-                    : "text-emerald-600"
-                }`}
+                className={`text-sm ${saveFeedback.type === "error"
+                  ? "text-red-600"
+                  : "text-emerald-600"
+                  }`}
               >
                 {saveFeedback.message}
               </p>
